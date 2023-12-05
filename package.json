@@ -218,7 +218,12 @@
     "semver@7.3.8": "^7.5.4",
     "@metamask/eth-keyring-controller@npm:^13.0.1": "patch:@metamask/eth-keyring-controller@npm%3A13.0.1#~/.yarn/patches/@metamask-eth-keyring-controller-npm-13.0.1-06ff83faad.patch",
     "nonce-tracker@npm:^3.0.0": "patch:nonce-tracker@npm%3A3.0.0#~/.yarn/patches/nonce-tracker-npm-3.0.0-c5e9a93f9d.patch",
-    "@metamask/accounts-controller@npm:^4.0.0": "patch:@metamask/accounts-controller@npm%3A4.0.0#~/.yarn/patches/@metamask-accounts-controller-npm-4.0.0-3127b56d14.patch"
+    "@metamask/accounts-controller@npm:^4.0.0": "patch:@metamask/accounts-controller@npm%3A4.0.0#~/.yarn/patches/@metamask-accounts-controller-npm-4.0.0-3127b56d14.patch",
+    "@metamask/network-controller@npm:^15.1.0": "patch:@metamask/network-controller@npm%3A15.2.0#~/.yarn/patches/@metamask-network-controller-npm-15.2.0-deaf5ce0c9.patch",
+    "@metamask/network-controller@npm:^16.0.0": "patch:@metamask/network-controller@npm%3A15.2.0#~/.yarn/patches/@metamask-network-controller-npm-15.2.0-deaf5ce0c9.patch",
+    "@metamask/network-controller@npm:^15.2.0": "patch:@metamask/network-controller@npm%3A15.2.0#~/.yarn/patches/@metamask-network-controller-npm-15.2.0-deaf5ce0c9.patch",
+    "@metamask/network-controller@npm:^15.0.0": "patch:@metamask/network-controller@npm%3A15.2.0#~/.yarn/patches/@metamask-network-controller-npm-15.2.0-deaf5ce0c9.patch",
+    "@metamask/network-controller@npm:^17.0.0": "patch:@metamask/network-controller@npm%3A15.2.0#~/.yarn/patches/@metamask-network-controller-npm-15.2.0-deaf5ce0c9.patch"
   },
   "dependencies": {
     "@babel/runtime": "^7.23.2",
@@ -274,7 +279,7 @@
     "@metamask/message-manager": "^7.3.0",
     "@metamask/metamask-eth-abis": "^3.0.0",
     "@metamask/name-controller": "^3.0.0",
-    "@metamask/network-controller": "^15.2.0",
+    "@metamask/network-controller": "patch:@metamask/network-controller@npm%3A15.2.0#~/.yarn/patches/@metamask-network-controller-npm-15.2.0-deaf5ce0c9.patch",
     "@metamask/notification-controller": "^3.0.0",
     "@metamask/obs-store": "^8.1.0",
     "@metamask/permission-controller": "^6.0.0",

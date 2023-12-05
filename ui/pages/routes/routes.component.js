@@ -622,11 +622,12 @@ export default class Routes extends Component {
       isUnlocked &&
       !shouldShowSeedPhraseReminder;
 
-    let isLoadingShown = isLoading;
+    let isLoadingShown = isLoading && completedOnboarding;
 
     ///: BEGIN:ONLY_INCLUDE_IN(keyring-snaps)
     isLoadingShown =
       isLoading &&
+      completedOnboarding &&
       !pendingConfirmations.some(
         (confirmation) =>
           confirmation.type ===
@@ -687,7 +688,9 @@ export default class Routes extends Component {
         }
         <Box className="main-container-wrapper">
           {isLoadingShown ? <Loading loadingMessage={loadMessage} /> : null}
-          {!isLoading && isNetworkLoading ? <LoadingNetwork /> : null}
+          {!isLoading && isNetworkLoading && completedOnboarding ? (
+            <LoadingNetwork />
+          ) : null}
           {this.renderRoutes()}
         </Box>
         {this.showFooter() && <AppFooter location={location} />}

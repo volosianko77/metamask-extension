@@ -81,9 +81,6 @@ export default class AccountTracker {
     this._currentBlockNumberByChainId = {
       [this.getCurrentChainId()]: this._blockTracker.getCurrentBlock(),
     };
-    this._blockTracker.once('latest', (blockNumber) => {
-      this._currentBlockNumberByChainId[this.getCurrentChainId()] = blockNumber;
-    });
 
     // subscribe to account removal
     opts.onAccountRemoved((address) => this.removeAccounts([address]));
@@ -123,6 +120,10 @@ export default class AccountTracker {
    * Starts polling with global selected network
    */
   start() {
+    this._blockTracker.once('latest', (blockNumber) => {
+      this._currentBlockNumberByChainId[this.getCurrentChainId()] = blockNumber;
+    });
+
     // remove first to avoid double add
     this._blockTracker.removeListener('latest', this._updateForBlock);
     // add listener
