@@ -8,6 +8,7 @@ import {
   NETWORKS_ROUTE,
   CONTACT_LIST_ROUTE,
   EXPERIMENTAL_ROUTE,
+  DEVELOPER_OPTIONS_ROUTE,
 } from './routes';
 
 export const SETTINGS_CONSTANTS = [
@@ -352,11 +353,28 @@ export const SETTINGS_CONSTANTS = [
     route: `${ADVANCED_ROUTE}#restore-userdata`,
     icon: 'fas fa-upload',
   },
+
   {
     tabMessage: (t) => t('experimental'),
     sectionMessage: (t) => t('securityAlerts'),
     descriptionMessage: (t) => t('securityAlertsDescription'),
     route: `${EXPERIMENTAL_ROUTE}#security-alerts`,
     icon: 'fa fa-flask',
+  },
+
+  {
+    tabMessage: (t) => t('developerOptions'),
+    sectionMessage: (t) => t('resetStates'),
+    descriptionMessage: (t) => t('resetStates'),
+    route: `${DEVELOPER_OPTIONS_ROUTE}#reset-states`,
+    icon: IconName.CodeCircle,
+  },
+  {
+    tabMessage: (t) => t('developerOptions'),
+    sectionMessage: (t) => t('announcements'),
+    descriptionMessage: (t) =>
+      t('developerOptionsResetStatesAnnouncementsDescription'),
+    route: `${DEVELOPER_OPTIONS_ROUTE}#reset-states-announcements`,
+    icon: IconName.CodeCircle,
   },
 ];
