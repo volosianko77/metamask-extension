@@ -1,5 +1,6 @@
 @import 'info-tab/index';
 @import 'alerts-tab/alerts-tab';
+@import 'developer-options-tab/index';
 @import 'networks-tab/index';
 @import 'settings-tab/index';
 @import 'contact-list-tab/index';
@@ -261,6 +262,10 @@
 
   &__content-row {
     padding: 10px 0 20px;
+
+    @include screen-sm-max {
+      flex-wrap: wrap;
+    }
   }
 
   &__content-item {
