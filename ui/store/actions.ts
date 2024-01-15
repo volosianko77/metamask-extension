@@ -2891,6 +2891,7 @@ export function completeOnboarding() {
   };
 }
 
+///: BEGIN:ONLY_INCLUDE_IF(developer-options)
 export function resetOnboarding(): ThunkAction<
   void,
   MetaMaskReduxState,
@@ -2912,6 +2913,7 @@ export function resetOnboardingAction() {
     type: actionConstants.RESET_ONBOARDING,
   };
 }
+///: END:ONLY_INCLUDE_IF
 
 export async function forceUpdateMetamaskState(
   dispatch: MetaMaskReduxDispatch,
@@ -4284,9 +4286,11 @@ export function updateViewedNotifications(notificationIdViewedStatusMap: {
   ]);
 }
 
+///: BEGIN:ONLY_INCLUDE_IF(developer-options)
 export function resetViewedNotifications() {
   return submitRequestToBackground('resetViewedNotifications');
 }
+///: END:ONLY_INCLUDE_IF
 
 export async function setAlertEnabledness(
   alertId: string,

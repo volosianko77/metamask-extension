@@ -369,6 +369,7 @@ export const SETTINGS_CONSTANTS = [
     icon: 'fa fa-flask',
   },
 
+  ///: BEGIN:ONLY_INCLUDE_IF(developer-options)
   {
     tabMessage: (t) => t('developerOptions'),
     sectionMessage: (t) => t('resetStates'),
@@ -391,4 +392,5 @@ export const SETTINGS_CONSTANTS = [
     route: `${DEVELOPER_OPTIONS_ROUTE}#reset-states-onboarding`,
     icon: IconName.CodeCircle,
   },
+  ///: END:ONLY_INCLUDE_IF
 ];
