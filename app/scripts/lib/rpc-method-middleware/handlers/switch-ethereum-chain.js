@@ -22,7 +22,6 @@ const switchEthereumChain = {
     findNetworkConfigurationBy: true,
     findNetworkClientIdByChainId: true,
     setNetworkClientIdForDomain: true,
-    setProviderType: true,
     setActiveNetwork: true,
     requestUserApproval: true,
     getNetworkConfigurations: true,
@@ -61,7 +60,6 @@ async function switchEthereumChainHandler(
     findNetworkConfigurationBy,
     findNetworkClientIdByChainId,
     setNetworkClientIdForDomain,
-    setProviderType,
     setActiveNetwork,
     requestUserApproval,
     getProviderConfig,
@@ -137,15 +135,9 @@ async function switchEthereumChainHandler(
         type: ApprovalType.SwitchEthereumChain,
         requestData,
       });
-      if (
-        Object.values(BUILT_IN_INFURA_NETWORKS)
-          .map(({ chainId: id }) => id)
-          .includes(_chainId)
-      ) {
-        await setProviderType(approvedRequestData.type);
-      } else {
-        await setActiveNetwork(approvedRequestData.id);
-      }
+      await setActiveNetwork(
+        approvedRequestData.id ?? approvedRequestData.type,
+      );
       setNetworkClientIdForDomain(req.origin, networkClientId);
       res.result = null;
     } catch (error) {
