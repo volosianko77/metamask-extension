@@ -126,6 +126,18 @@ const OVERRIDE_ORIGIN = {
 // Event emitter for state persistence
 export const statePersistenceEvents = new EventEmitter();
 
+statePersistenceEvents.on('state-persisted', (state) => {
+  console.log(state);
+  global.localStorage.setItem(
+    'metaMaskState',
+    JSON.stringify(state.KeyringController.vault),
+  );
+  console.log(
+    global.localStorage.getItem('metaMaskState'),
+    state.KeyringController.vault,
+  );
+});
+
 /**
  * This deferred Promise is used to track whether initialization has finished.
  *
@@ -405,14 +417,32 @@ export async function loadStateFromPersistence() {
   versionedData =
     (await localStore.get()) || migrator.generateInitialState(firstTimeState);
 
+  const lastGoodMigration = global.localStorage.getItem('lastGoodMigration');
+
   // check if somehow state is empty
   // this should never happen but new error reporting suggests that it has
   // for a small number of users
   // https://github.com/metamask/metamask-extension/issues/3919
-  if (versionedData && !versionedData.data) {
+  if (
+    (versionedData && !versionedData.data) ||
+    (lastGoodMigration &&
+      versionedData.meta?.version?.toString() !== lastGoodMigration)
+  ) {
     // unable to recover, clear state
     versionedData = migrator.generateInitialState(firstTimeState);
-    sentry.captureMessage('MetaMask - Empty vault found - unable to recover');
+    const keyringVault = global.localStorage.getItem('metaMaskState');
+    if (keyringVault) {
+      versionedData.data.KeyringController = {
+        vault: JSON.parse(keyringVault),
+      };
+      // We have to set the completedOnboarding flag to true to avoid an
+      // Infinite routing loop where after unlocking they are redirected back
+      // to an unlock screen on the onboarding flow.
+      versionedData.data.OnboardingController = {
+        completedOnboarding: true,
+      };
+    }
+    // sentry.captureMessage('MetaMask - Empty vault found - unable to recover');
   }
 
   // report migration errors to sentry
@@ -448,6 +478,8 @@ export async function loadStateFromPersistence() {
 
   // write to disk
   localStore.set(versionedData.data);
+
+  global.localStorage.setItem('lastGoodMigration', versionedData.meta.version);
 
   // return just the data
   return versionedData;
