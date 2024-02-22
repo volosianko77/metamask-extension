@@ -4615,6 +4615,18 @@ export function hideNetworkBanner() {
   return submitRequestToBackground('setShowNetworkBanner', [false]);
 }
 
+export function setSwitchedNetworkDetails(switchedNetworkDetails) {
+  return submitRequestToBackground('setSwitchedNetworkDetails', [
+    switchedNetworkDetails,
+  ]);
+}
+
+export function neverShowSwitchedNetworkMessage() {
+  return submitRequestToBackground('setSwitchedNetworkNeverShowMessage', [
+    true,
+  ]);
+}
+
 // TODO: codeword NOT_A_THUNK @brad-decker
 export function setTransactionSecurityCheckEnabled(
   transactionSecurityCheckEnabled: boolean,
