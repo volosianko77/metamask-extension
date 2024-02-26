@@ -97,12 +97,17 @@ export async function getErrorHtml(
           <p>
             ${errorKey === 'troubleStarting' ? t('troubleStarting') : ''}
             ${errorKey === 'somethingIsWrong' ? t('somethingIsWrong') : ''}
+            ${errorKey === 'restoredFromBackup' ? t('restoredFromBackup') : ''}
           </p>
           <div id="critical-error-button" class="critical-error__link critical-error__link-restart">
             ${t('restartMetamask')}
           </div>
           <p class="critical-error__footer">
-            <span>${t('stillGettingMessage')}</span>
+            <span>${
+              errorKey === 'restoredFromBackup'
+                ? t('unexpectedBehavior')
+                : t('stillGettingMessage')
+            }</span>
             <a
               href=${supportLink}
               class="critical-error__link"

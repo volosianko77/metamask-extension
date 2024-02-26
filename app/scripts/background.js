@@ -126,16 +126,11 @@ const OVERRIDE_ORIGIN = {
 // Event emitter for state persistence
 export const statePersistenceEvents = new EventEmitter();
 
-statePersistenceEvents.on('state-persisted', (state) => {
-  console.log(state);
-  global.localStorage.setItem(
-    'metaMaskState',
-    JSON.stringify(state.KeyringController.vault),
-  );
-  console.log(
-    global.localStorage.getItem('metaMaskState'),
-    state.KeyringController.vault,
-  );
+statePersistenceEvents.on('version-mismatch', ({ vaultStructure }) => {
+  console.log('Mistmatch');
+  sentry?.captureException(new Error('MetaMask - Migration Version Mismatch'), {
+    extra: { vaultStructure },
+  });
 });
 
 /**
@@ -418,22 +413,33 @@ export async function loadStateFromPersistence() {
     (await localStore.get()) || migrator.generateInitialState(firstTimeState);
 
   const lastGoodMigration = global.localStorage.getItem('lastGoodMigration');
+  const lastGoodMigrationNum =
+    typeof Number(lastGoodMigration) === 'number'
+      ? Number(lastGoodMigration)
+      : 0;
+  const currentVersionNumber = versionedData.meta?.version;
+
+  if (lastGoodMigration && lastGoodMigrationNum !== currentVersionNumber) {
+    statePersistenceEvents.emit('version-mismatch', {
+      vaultStructure: getObjStructure(versionedData),
+    });
+  }
 
   // check if somehow state is empty
   // this should never happen but new error reporting suggests that it has
   // for a small number of users
   // https://github.com/metamask/metamask-extension/issues/3919
-  if (
-    (versionedData && !versionedData.data) ||
-    (lastGoodMigration &&
-      versionedData.meta?.version?.toString() !== lastGoodMigration)
-  ) {
+  if (versionedData && !versionedData.data) {
     // unable to recover, clear state
     versionedData = migrator.generateInitialState(firstTimeState);
-    const keyringVault = global.localStorage.getItem('metaMaskState');
+    const keyringVault = global.localStorage.getItem('metaMaskVault');
     if (keyringVault) {
+      console.log(versionedData);
       versionedData.data.KeyringController = {
+        // Restore the vault from localstorage
         vault: JSON.parse(keyringVault),
+        // Set a flag to indicate that the vault was restored from backup
+        restoredFromBackup: true,
       };
       // We have to set the completedOnboarding flag to true to avoid an
       // Infinite routing loop where after unlocking they are redirected back
@@ -443,6 +449,10 @@ export async function loadStateFromPersistence() {
       };
     }
     // sentry.captureMessage('MetaMask - Empty vault found - unable to recover');
+  } else if (versionedData.data.KeyringController.restoredFromBackup === true) {
+    // Remove the flag, hopefully this happens after the user is displayed the
+    // error screen UI and clicks "Restart MetaMask"
+    versionedData.data.KeyringController.restoredFromBackup = false;
   }
 
   // report migration errors to sentry

@@ -230,6 +230,18 @@ async function start() {
         isUIInitialised = true;
 
         const state = store.getState();
+
+        if (state.metamask.restoredFromBackup === true) {
+          displayCriticalError(
+            'restoredFromBackup',
+            new Error('Restored from backup'),
+            store,
+            ///: BEGIN:ONLY_INCLUDE_IF(desktop)
+            backgroundConnection,
+            ///: END:ONLY_INCLUDE_IF
+          );
+        }
+
         const { metamask: { completedOnboarding } = {} } = state;
 
         if (
