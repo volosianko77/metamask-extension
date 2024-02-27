@@ -3783,9 +3783,6 @@
   "restore": {
     "message": "Restore"
   },
-  "restoredFromBackup": {
-    "message": "Your MetaMask wallet state was corrupted, but your accounts were restored from backup. You may continue to use MetaMask as normal, however any settings you had set have been reverted to default. Take a moment in the settings page to restore your settings to your preferred state before interacting with your accounts."
-  },
   "restoreFailed": {
     "message": "Can not restore your data from the file provided"
   },
@@ -3797,6 +3794,9 @@
   },
   "restoreUserDataDescription": {
     "message": "You can restore data like contacts and preferences from a backup file."
+  },
+  "restoredFromBackup": {
+    "message": "Your MetaMask wallet state was corrupted, but your accounts were restored from backup. You may continue to use MetaMask as normal, however any settings you had set have been reverted to default. Take a moment in the settings page to restore your settings to your preferred state before interacting with your accounts."
   },
   "resultPageError": {
     "message": "Error"
