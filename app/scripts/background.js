@@ -126,13 +126,6 @@ const OVERRIDE_ORIGIN = {
 // Event emitter for state persistence
 export const statePersistenceEvents = new EventEmitter();
 
-statePersistenceEvents.on('version-mismatch', ({ vaultStructure }) => {
-  console.log('Mistmatch');
-  sentry?.captureException(new Error('MetaMask - Migration Version Mismatch'), {
-    extra: { vaultStructure },
-  });
-});
-
 /**
  * This deferred Promise is used to track whether initialization has finished.
  *
@@ -412,17 +405,25 @@ export async function loadStateFromPersistence() {
   versionedData =
     (await localStore.get()) || migrator.generateInitialState(firstTimeState);
 
+  // In an effort to get error reports when issues arise with data persistence,
+  // we load a key from localStorage that we set later in this file containing
+  // the last known successfully ran migration version. If the migration
+  // version in versionedData differs from this stored value that is indicative
+  // of some sort of issue occuring.
   const lastGoodMigration = global.localStorage.getItem('lastGoodMigration');
+  // localStorage is serialized to strings, so we need to convert it to a
+  // number.
   const lastGoodMigrationNum =
     typeof Number(lastGoodMigration) === 'number'
       ? Number(lastGoodMigration)
       : 0;
   const currentVersionNumber = versionedData.meta?.version;
 
+  // A new install would have no lastGoodMigration, so we only want to check
+  // for existence and for a mismatch if the lastGoodMigrationNum is not the
+  // same. If this is the case we capture a message.
   if (lastGoodMigration && lastGoodMigrationNum !== currentVersionNumber) {
-    statePersistenceEvents.emit('version-mismatch', {
-      vaultStructure: getObjStructure(versionedData),
-    });
+    sentry?.captureMessage('MetaMask - Migration Version Mismatch');
   }
 
   // check if somehow state is empty
@@ -432,9 +433,18 @@ export async function loadStateFromPersistence() {
   if (versionedData && !versionedData.data) {
     // unable to recover, clear state
     versionedData = migrator.generateInitialState(firstTimeState);
+    sentry?.captureMessage('MetaMask - Empty vault found - unable to recover');
+    // We persist the vault to localStorage as a failsafe in the event state
+    // corruption occurs.  When we get to this point we pull it out of
+    // localStorage and use it to at least allow the user to recover their
+    // accounts and backup their seed phrase. The rest of their settings will
+    // be wiped and returned to default. For the sake of transparency we will
+    // show an error screen to the user informing them what happened and that
+    // their settings are defaulted. The 'restoredFromBackup' flag is used to
+    // show this error screen in ui.js. Once they restart the app the flag is
+    // reverted to bypass the error screen.
     const keyringVault = global.localStorage.getItem('metaMaskVault');
     if (keyringVault) {
-      console.log(versionedData);
       versionedData.data.KeyringController = {
         // Restore the vault from localstorage
         vault: JSON.parse(keyringVault),
@@ -448,7 +458,6 @@ export async function loadStateFromPersistence() {
         completedOnboarding: true,
       };
     }
-    // sentry.captureMessage('MetaMask - Empty vault found - unable to recover');
   } else if (versionedData.data.KeyringController.restoredFromBackup === true) {
     // Remove the flag, hopefully this happens after the user is displayed the
     // error screen UI and clicks "Restart MetaMask"
@@ -489,6 +498,11 @@ export async function loadStateFromPersistence() {
   // write to disk
   localStore.set(versionedData.data);
 
+  // In an effort to track irregularities in migration and data storage, we
+  // store the last good migration that ran without crashing the app at this
+  // point. We can then compare this number to the current migration version
+  // higher up in this file to determine if something happened during loading
+  // state from storage that caused the migration number to be out of sync.
   global.localStorage.setItem('lastGoodMigration', versionedData.meta.version);
 
   // return just the data

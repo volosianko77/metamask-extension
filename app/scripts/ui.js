@@ -231,6 +231,11 @@ async function start() {
 
         const state = store.getState();
 
+        // If we have restored the user's vault from backup we need to indicate
+        // this to the user. The user's settings have all been reverted to
+        // default which includes any privacy preferences they may have set. So
+        // we want to ensure that they are aware before interacting with their
+        // accounts further.
         if (state.metamask.restoredFromBackup === true) {
           displayCriticalError(
             'restoredFromBackup',

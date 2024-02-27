@@ -5175,6 +5175,9 @@ export default class MetamaskController extends EventEmitter {
       [],
     );
 
+    // If the vault has not yet been backed up to localStorage, do so at this
+    // point. Any changes to the actual vault will be handled by a specific
+    // listener that will only fire when the vault changes.
     if (window.localStorage.getItem('metaMaskVault') === null) {
       window.localStorage.setItem('metaMaskVault', JSON.stringify(state.vault));
     }
