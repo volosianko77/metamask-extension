@@ -458,7 +458,9 @@ export async function loadStateFromPersistence() {
         completedOnboarding: true,
       };
     }
-  } else if (versionedData.data.KeyringController.restoredFromBackup === true) {
+  } else if (
+    versionedData.data?.KeyringController?.restoredFromBackup === true
+  ) {
     // Remove the flag, hopefully this happens after the user is displayed the
     // error screen UI and clicks "Restart MetaMask"
     versionedData.data.KeyringController.restoredFromBackup = false;
