@@ -63,15 +63,28 @@ export default class ExtensionStore {
     if (!this.isSupported) {
       return undefined;
     }
-    const result = await this._get();
-    // extension.storage.local always returns an obj
-    // if the object is empty, treat it as undefined
-    if (isEmpty(result)) {
-      this.mostRecentRetrievedState = null;
+    // State can become corrupted on firefox which seems to be most commonly
+    // caused by a broken link between the sqlite entry for the extension and
+    // the name of the file that stores the data. Some users have been able to
+    // restore the functionality by finding and fixing the reference but until
+    // then the extension presents as an infinite spinner loader. To avoid this
+    // we can return undefined if we get an error loading state. This will make
+    // Firefox behave the same way that Chrome does when state is missing which
+    // is to load the default state and drop into the onboarding flow.
+    try {
+      const result = await this._get();
+      // extension.storage.local always returns an obj
+      // if the object is empty, treat it as undefined
+      if (isEmpty(result)) {
+        this.mostRecentRetrievedState = null;
+        return undefined;
+      }
+      this.mostRecentRetrievedState = result;
+      return result;
+    } catch (err) {
+      log.error('error getting state from local store:', err);
       return undefined;
     }
-    this.mostRecentRetrievedState = result;
-    return result;
   }
 
   /**
@@ -83,14 +96,19 @@ export default class ExtensionStore {
   _get() {
     const { local } = browser.storage;
     return new Promise((resolve, reject) => {
-      local.get(null).then((/** @type {any} */ result) => {
-        const err = checkForLastError();
-        if (err) {
-          reject(err);
-        } else {
-          resolve(result);
-        }
-      });
+      local
+        .get(null)
+        .then((/** @type {any} */ result) => {
+          const err = checkForLastError();
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        })
+        // Because local.get can fail, we need to catch the error and  reject
+        // it so we can deal with the error higher in the applciation logic.
+        .catch((e) => reject(e));
     });
   }
 
