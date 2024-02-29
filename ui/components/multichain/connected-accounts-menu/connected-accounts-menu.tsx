@@ -1,4 +1,5 @@
 import React, { useRef, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   PopoverRole,
   PopoverPosition,
@@ -15,6 +16,7 @@ import {
   TextVariant,
 } from '../../../helpers/constants/design-system';
 import { useI18nContext } from '../../../hooks/useI18nContext';
+import { showDappPermissionModal } from '../../../store/actions';
 
 const TsMenuItem = MenuItem as any;
 
@@ -28,6 +30,7 @@ export const ConnectedAccountsMenu = ({
   onClose?: () => void;
 }) => {
   const t = useI18nContext();
+  const dispatch = useDispatch();
   const popoverDialogRef = useRef<HTMLDivElement | null>(null);
 
   const handleKeyDown = useCallback(
@@ -42,6 +45,14 @@ export const ConnectedAccountsMenu = ({
     },
     [onClose],
   );
+
+  function openDappPermissionModal() {
+    dispatch(
+      showDappPermissionModal({
+        account: { label: 'NFT account', address: '0x0000000' },
+      }),
+    );
+  }
 
   return (
     <Popover
@@ -61,6 +72,7 @@ export const ConnectedAccountsMenu = ({
           <TsMenuItem
             iconName={IconName.SecurityTick}
             data-testid="permission-details-menu-item"
+            onClick={openDappPermissionModal}
           >
             <Text variant={TextVariant.bodyMd}>{t('permissionDetails')}</Text>
           </TsMenuItem>
