@@ -29,6 +29,7 @@ import ConfirmAddSuggestedNftPage from '../confirm-add-suggested-nft';
 import Loading from '../../components/ui/loading-screen';
 import LoadingNetwork from '../../components/app/loading-network-screen';
 import { Modal } from '../../components/app/modals';
+import { DappPermissionModal } from '../../components/multichain/dapp-permission-modal';
 import Alert from '../../components/ui/alert';
 import {
   AppHeader,
@@ -166,6 +167,7 @@ export default class Routes extends Component {
     isAccountMenuOpen: PropTypes.bool,
     toggleAccountMenu: PropTypes.func,
     isNetworkMenuOpen: PropTypes.bool,
+    isDappPermissionModalOpen: PropTypes.bool,
     toggleNetworkMenu: PropTypes.func,
     accountDetailsAddress: PropTypes.string,
     isImportNftsModalOpen: PropTypes.bool.isRequired,
@@ -573,6 +575,7 @@ export default class Routes extends Component {
       toggleNetworkMenu,
       accountDetailsAddress,
       isImportTokensModalOpen,
+      isDappPermissionModalOpen,
       isDeprecatedNetworkModalOpen,
       location,
       isImportNftsModalOpen,
@@ -653,6 +656,7 @@ export default class Routes extends Component {
         {isImportNftsModalOpen ? (
           <ImportNftsModal onClose={() => hideImportNftsModal()} />
         ) : null}
+        {isDappPermissionModalOpen ? <DappPermissionModal /> : null}
         {isIpfsModalOpen ? (
           <ToggleIpfsModal onClose={() => hideIpfsModal()} />
         ) : null}
