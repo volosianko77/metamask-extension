@@ -2988,6 +2988,8 @@ export default class MetamaskController extends EventEmitter {
       // NftController
       addNft: nftController.addNft.bind(nftController),
 
+      updateNftMetadata: nftController.updateNftMetadata.bind(nftController),
+
       addNftVerifyOwnership:
         nftController.addNftVerifyOwnership.bind(nftController),
 
