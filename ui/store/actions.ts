@@ -2015,8 +2015,10 @@ export function updateNftMetadata(
     try {
       const networkClientId = getSelectedNetworkClientId(getState());
       await submitRequestToBackground('updateNftMetadata', [
-        nfts,
-        networkClientId,
+        {
+          nfts,
+          networkClientId,
+        },
       ]);
     } catch (error) {
       logErrorWithMessage(error);
