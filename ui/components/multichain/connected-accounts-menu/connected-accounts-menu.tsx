@@ -80,9 +80,10 @@ export const ConnectedAccountsMenu = ({
   );
 
   function openDappPermissionModal() {
+    onClose();
     dispatch(
       showDappPermissionModal({
-        account: { label: 'NFT account', address: '0x0000000' },
+        account: { label: identity?.label, address: identity.address },
       }),
     );
   }
@@ -132,6 +133,8 @@ export const ConnectedAccountsMenu = ({
               dispatch(
                 removePermittedAccount(activeTabOrigin, identity.address),
               );
+              onClose();
+              closeMenu();
             }}
           >
             <Text color={TextColor.errorDefault} variant={TextVariant.bodyMd}>
