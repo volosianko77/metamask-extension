@@ -190,11 +190,12 @@ async function startApp(metamaskState, backgroundConnection, opts) {
   const state = store.getState();
   const selectedTabOrigin = getOriginOfCurrentTab(state);
   const useRequestQueue = getUseRequestQueue(state);
+  const environment = getEnvironmentType();
 
   // selectedTabOrigin won't be populated if in fullscreen mode
   // so we ensure that the user is in the popup
   if (
-    getEnvironmentType() === ENVIRONMENT_TYPE_POPUP &&
+    environment === ENVIRONMENT_TYPE_POPUP &&
     useRequestQueue &&
     selectedTabOrigin &&
     process.env.MULTICHAIN
@@ -241,6 +242,18 @@ async function startApp(metamaskState, backgroundConnection, opts) {
       store.dispatch(actions.setFeatureFlag(key, value));
     },
   };
+
+  // Register this window as the current popup
+  // and set in background state
+  if (
+    process.env.MULTICHAIN &&
+    useRequestQueue &&
+    environment === ENVIRONMENT_TYPE_POPUP
+  ) {
+    const thisPopupId = Date.now();
+    global.metamask.id = thisPopupId;
+    actions.setCurrentExtensionPopupId(thisPopupId);
+  }
 
   // start app
   render(<Root store={store} />, opts.container);

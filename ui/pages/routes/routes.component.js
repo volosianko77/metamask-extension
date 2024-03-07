@@ -193,6 +193,8 @@ export default class Routes extends Component {
     switchedNetworkDetails: PropTypes.oneOfType([PropTypes.object, null]),
     setSwitchedNetworkDetails: PropTypes.func.isRequired,
     setSwitchedNetworkNeverShowMessage: PropTypes.func.isRequired,
+    currentExtensionPopupId: PropTypes.number,
+    useRequestQueue: PropTypes.bool,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     isShowKeyringSnapRemovalResultModal: PropTypes.bool.isRequired,
     hideShowKeyringSnapRemovalResultModal: PropTypes.func.isRequired,
@@ -242,7 +244,8 @@ export default class Routes extends Component {
   ///: END:ONLY_INCLUDE_IF
 
   componentDidUpdate(prevProps) {
-    const { theme, account } = this.props;
+    const { theme, account, useRequestQueue, currentExtensionPopupId } =
+      this.props;
 
     if (theme !== prevProps.theme) {
       this.setTheme();
@@ -250,6 +253,18 @@ export default class Routes extends Component {
 
     if (prevProps.account?.address !== account?.address) {
       this.setState({ hideConnectAccountToast: false });
+    }
+
+    // Terminate the popup when another popup is opened
+    // if the user is using RPC queueing
+    if (
+      useRequestQueue &&
+      process.env.MULTICHAIN &&
+      currentExtensionPopupId !== undefined &&
+      global.metamask.id !== undefined &&
+      currentExtensionPopupId !== global.metamask.id
+    ) {
+      window.close();
     }
   }
 

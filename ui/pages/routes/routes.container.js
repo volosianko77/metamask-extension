@@ -19,6 +19,7 @@ import {
   getSelectedAccount,
   getPermittedAccountsForCurrentTab,
   getSwitchedNetworkDetails,
+  getUseRequestQueue,
 } from '../../selectors';
 import {
   lockMetamask,
@@ -103,6 +104,9 @@ function mapStateToProps(state) {
     isImportNftsModalOpen: state.appState.importNftsModal.open,
     isIpfsModalOpen: state.appState.showIpfsModalOpen,
     switchedNetworkDetails: getSwitchedNetworkDetails(state),
+    currentExtensionPopupId: state.metamask.currentExtensionPopupId,
+    useRequestQueue: getUseRequestQueue(state),
+
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     isShowKeyringSnapRemovalResultModal:
       state.appState.showKeyringRemovalSnapModal,
