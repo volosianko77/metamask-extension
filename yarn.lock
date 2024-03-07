@@ -8284,9 +8284,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-darwin-arm64@npm:1.4.6":
+  version: 1.4.6
+  resolution: "@swc/core-darwin-arm64@npm:1.4.6"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "@swc/core-darwin-x64@npm:1.3.107":
   version: 1.3.107
   resolution: "@swc/core-darwin-x64@npm:1.3.107"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@swc/core-darwin-x64@npm:1.4.6":
+  version: 1.4.6
+  resolution: "@swc/core-darwin-x64@npm:1.4.6"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
@@ -8298,9 +8312,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-linux-arm-gnueabihf@npm:1.4.6":
+  version: 1.4.6
+  resolution: "@swc/core-linux-arm-gnueabihf@npm:1.4.6"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
 "@swc/core-linux-arm64-gnu@npm:1.3.107":
   version: 1.3.107
   resolution: "@swc/core-linux-arm64-gnu@npm:1.3.107"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-arm64-gnu@npm:1.4.6":
+  version: 1.4.6
+  resolution: "@swc/core-linux-arm64-gnu@npm:1.4.6"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
@@ -8312,9 +8340,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-linux-arm64-musl@npm:1.4.6":
+  version: 1.4.6
+  resolution: "@swc/core-linux-arm64-musl@npm:1.4.6"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
 "@swc/core-linux-x64-gnu@npm:1.3.107":
   version: 1.3.107
   resolution: "@swc/core-linux-x64-gnu@npm:1.3.107"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-x64-gnu@npm:1.4.6":
+  version: 1.4.6
+  resolution: "@swc/core-linux-x64-gnu@npm:1.4.6"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
@@ -8326,9 +8368,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-linux-x64-musl@npm:1.4.6":
+  version: 1.4.6
+  resolution: "@swc/core-linux-x64-musl@npm:1.4.6"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
 "@swc/core-win32-arm64-msvc@npm:1.3.107":
   version: 1.3.107
   resolution: "@swc/core-win32-arm64-msvc@npm:1.3.107"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@swc/core-win32-arm64-msvc@npm:1.4.6":
+  version: 1.4.6
+  resolution: "@swc/core-win32-arm64-msvc@npm:1.4.6"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
@@ -8340,6 +8396,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-win32-ia32-msvc@npm:1.4.6":
+  version: 1.4.6
+  resolution: "@swc/core-win32-ia32-msvc@npm:1.4.6"
+  conditions: os=win32 & cpu=ia32
+  languageName: node
+  linkType: hard
+
 "@swc/core-win32-x64-msvc@npm:1.3.107":
   version: 1.3.107
   resolution: "@swc/core-win32-x64-msvc@npm:1.3.107"
@@ -8347,7 +8410,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core@npm:^1.3.107, @swc/core@npm:^1.3.18, @swc/core@npm:^1.3.49":
+"@swc/core-win32-x64-msvc@npm:1.4.6":
+  version: 1.4.6
+  resolution: "@swc/core-win32-x64-msvc@npm:1.4.6"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@swc/core@npm:^1.3.18, @swc/core@npm:^1.3.49":
   version: 1.3.107
   resolution: "@swc/core@npm:1.3.107"
   dependencies:
@@ -8393,10 +8463,63 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core@npm:^1.4.6":
+  version: 1.4.6
+  resolution: "@swc/core@npm:1.4.6"
+  dependencies:
+    "@swc/core-darwin-arm64": "npm:1.4.6"
+    "@swc/core-darwin-x64": "npm:1.4.6"
+    "@swc/core-linux-arm-gnueabihf": "npm:1.4.6"
+    "@swc/core-linux-arm64-gnu": "npm:1.4.6"
+    "@swc/core-linux-arm64-musl": "npm:1.4.6"
+    "@swc/core-linux-x64-gnu": "npm:1.4.6"
+    "@swc/core-linux-x64-musl": "npm:1.4.6"
+    "@swc/core-win32-arm64-msvc": "npm:1.4.6"
+    "@swc/core-win32-ia32-msvc": "npm:1.4.6"
+    "@swc/core-win32-x64-msvc": "npm:1.4.6"
+    "@swc/counter": "npm:^0.1.2"
+    "@swc/types": "npm:^0.1.5"
+  peerDependencies:
+    "@swc/helpers": ^0.5.0
+  dependenciesMeta:
+    "@swc/core-darwin-arm64":
+      optional: true
+    "@swc/core-darwin-x64":
+      optional: true
+    "@swc/core-linux-arm-gnueabihf":
+      optional: true
+    "@swc/core-linux-arm64-gnu":
+      optional: true
+    "@swc/core-linux-arm64-musl":
+      optional: true
+    "@swc/core-linux-x64-gnu":
+      optional: true
+    "@swc/core-linux-x64-musl":
+      optional: true
+    "@swc/core-win32-arm64-msvc":
+      optional: true
+    "@swc/core-win32-ia32-msvc":
+      optional: true
+    "@swc/core-win32-x64-msvc":
+      optional: true
+  peerDependenciesMeta:
+    "@swc/helpers":
+      optional: true
+  checksum: acf826107e5c72d2cf436fb80b4799b5fd2981e4493bcf573cdcc2c6abd02b29942df8f6b15f6c67a1d39bb709ac9e67194879f0dd7d36bdb41782a3ca612841
+  languageName: node
+  linkType: hard
+
 "@swc/counter@npm:^0.1.1":
   version: 0.1.2
   resolution: "@swc/counter@npm:0.1.2"
   checksum: 8427c594f1f0cf44b83885e9c8fe1e370c9db44ae96e07a37c117a6260ee97797d0709483efbcc244e77bac578690215f45b23254c4cd8a70fb25ddbb50bf33e
+  languageName: node
+  linkType: hard
+
+"@swc/counter@npm:^0.1.2":
+  version: 0.1.3
+  resolution: "@swc/counter@npm:0.1.3"
+  checksum: df8f9cfba9904d3d60f511664c70d23bb323b3a0803ec9890f60133954173047ba9bdeabce28cd70ba89ccd3fd6c71c7b0bd58be85f611e1ffbe5d5c18616598
   languageName: node
   linkType: hard
 
@@ -8940,13 +9063,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chrome@npm:^0.0.251":
-  version: 0.0.251
-  resolution: "@types/chrome@npm:0.0.251"
+"@types/chrome@npm:^0.0.262":
+  version: 0.0.262
+  resolution: "@types/chrome@npm:0.0.262"
   dependencies:
     "@types/filesystem": "npm:*"
     "@types/har-format": "npm:*"
-  checksum: a775f6ce867d8edd3d18950851b6a6670510cbed4b80ada79d45952d0baacf5e898c5453f44d4a012b1a906b58cf44b191272cb9970e3589b2f4c06fcb97a28e
+  checksum: e912b79108f62ef446d1a6654a7092901bee2ef78b24e844491feeb08b5cbf4a5d164b04a8b67653e534e5d2ca013d15c44a067d397d4c6be0acef708c93c8a2
   languageName: node
   linkType: hard
 
@@ -9579,7 +9702,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/path-browserify@npm:^1":
+"@types/path-browserify@npm:^1.0.2":
   version: 1.0.2
   resolution: "@types/path-browserify@npm:1.0.2"
   checksum: 7b26df1a32827f7e588009386f62e0f900e8d349722b1b8b8c100cd2c4cc1e95c64099f5ec879cd131e69869088f336998a3ddb17085b68312414431a4eace01
@@ -10008,7 +10131,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/yargs-parser@npm:*, @types/yargs-parser@npm:^21":
+"@types/yargs-parser@npm:*, @types/yargs-parser@npm:^21.0.3":
   version: 21.0.3
   resolution: "@types/yargs-parser@npm:21.0.3"
   checksum: a794eb750e8ebc6273a51b12a0002de41343ffe46befef460bdbb57262d187fdf608bc6615b7b11c462c63c3ceb70abe2564c8dd8ee0f7628f38a314f74a9b9b
@@ -25226,7 +25349,7 @@ __metadata:
     "@storybook/storybook-deployer": "npm:^2.8.16"
     "@storybook/test-runner": "npm:^0.14.1"
     "@storybook/theming": "npm:^7.4.6"
-    "@swc/core": "npm:^1.3.107"
+    "@swc/core": "npm:^1.4.6"
     "@swc/helpers": "npm:^0.5.6"
     "@testing-library/jest-dom": "npm:^5.11.10"
     "@testing-library/react": "npm:^10.4.8"
@@ -25237,7 +25360,7 @@ __metadata:
     "@types/autoprefixer": "npm:^10.2.0"
     "@types/babelify": "npm:^7.3.7"
     "@types/browserify": "npm:^12.0.37"
-    "@types/chrome": "npm:^0.0.251"
+    "@types/chrome": "npm:^0.0.262"
     "@types/currency-formatter": "npm:^1.5.1"
     "@types/end-of-stream": "npm:^1.4.1"
     "@types/fs-extra": "npm:^9.0.13"
@@ -25249,7 +25372,7 @@ __metadata:
     "@types/madge": "npm:^5.0.0"
     "@types/mocha": "npm:^10.0.3"
     "@types/node": "npm:^20"
-    "@types/path-browserify": "npm:^1"
+    "@types/path-browserify": "npm:^1.0.2"
     "@types/pify": "npm:^5.0.1"
     "@types/pump": "npm:^1.1.1"
     "@types/react": "npm:^16.9.53"
@@ -25267,7 +25390,7 @@ __metadata:
     "@types/watchify": "npm:^3.11.1"
     "@types/webextension-polyfill": "npm:^0.10.4"
     "@types/yargs": "npm:^17.0.32"
-    "@types/yargs-parser": "npm:^21"
+    "@types/yargs-parser": "npm:^21.0.3"
     "@typescript-eslint/eslint-plugin": "npm:^6.21.0"
     "@typescript-eslint/parser": "npm:^6.21.0"
     "@whitespace/storybook-addon-html": "npm:^5.1.6"
@@ -25397,7 +25520,7 @@ __metadata:
     pify: "npm:^5.0.0"
     polyfill-crypto.getrandomvalues: "npm:^1.0.0"
     postcss: "npm:^8.4.32"
-    postcss-loader: "npm:^8.1.0"
+    postcss-loader: "npm:^8.1.1"
     postcss-rtlcss: "npm:^4.0.9"
     postcss-urlrewrite: "npm:^0.2.2"
     prettier: "npm:^2.7.1"
@@ -28549,9 +28672,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-loader@npm:^8.1.0":
-  version: 8.1.0
-  resolution: "postcss-loader@npm:8.1.0"
+"postcss-loader@npm:^8.1.1":
+  version: 8.1.1
+  resolution: "postcss-loader@npm:8.1.1"
   dependencies:
     cosmiconfig: "npm:^9.0.0"
     jiti: "npm:^1.20.0"
@@ -28565,7 +28688,7 @@ __metadata:
       optional: true
     webpack:
       optional: true
-  checksum: 06040d1b3819bae0c1d6b209646e1e9c1924d7a6acb7dd8bde2fc6e57b0b330e5386eb11a62f81f6f80de15e57cdab49191125ab464debb721e94e6d39c1da2e
+  checksum: 7ae38e635119a808ec05e25a5d1327afd40f5f07e1ae40827e4be5e9d1d0adf0e8e277252c13ddbc8909a1bc53fecb15741db340b98966c2bd9cab867cfe5f10
   languageName: node
   linkType: hard
 
