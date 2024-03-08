@@ -33,11 +33,12 @@ import { parseArgv } from './utils/cli';
 import { type CodeFenceLoaderOptions } from './utils/loaders/codeFenceLoader';
 import { type SwcLoaderOptions } from './utils/loaders/swcLoader';
 import { SelfInjectPlugin } from './utils/plugins/SelfInjectPlugin';
-import { loadEnv } from './utils/config';
+import { loadBuildTypesConfig, loadEnv } from './utils/config';
 import { setEnvironmentVariables } from '../build/set-environment-variables';
 import { getVersion } from '../lib/get-version';
 
-const { args, cacheKey, features } = parseArgv(process.argv.slice(2));
+const buildTypesConfig = loadBuildTypesConfig();
+const { args, cacheKey, features } = parseArgv(process.argv.slice(2), buildTypesConfig);
 
 if (args['dry-run']) {
   console.error(`🦊 Build Config 🦊
@@ -150,7 +151,7 @@ const BROWSER = args.browser[0] as Browser;
 const NAME = 'MetaMask';
 const DESCRIPTION = `MetaMask ${BROWSER} Extension`;
 const METAMASK_VERSION = getVersion(args.type, 0) as SemVerVersion;
-const { definitions } = loadEnv(args.type as any);
+const { definitions } = loadEnv(args.type, buildTypesConfig);
 setEnvironmentVariables({
   buildType: args.type,
   version: METAMASK_VERSION,

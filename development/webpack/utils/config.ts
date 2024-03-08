@@ -23,45 +23,14 @@ function loadIni(
 }
 
 /**
- * Creates a memoized version of a function to optimize its execution by caching
- * the results based on the arguments passed. If the memoized function is called
- * with the same arguments as a previous call, the cached result is returned
- * instead of executing the original function again. This can significantly
- * improve performance for expensive or frequently called functions with
- * identical arguments.
- *
- * @template T A function type that takes any number of arguments and returns
- * any type.
- * @param fn - The function to be memoized. It can take any number of arguments
- * and return any type.
- * @returns A memoized version of the input function. This function has the same
- * signature as the
- * original function and will return cached results for previously encountered
- * arguments.
- */
-function memoize<T extends (...args: any[]) => any>(fn: T): T {
-  const cache = new Map<string, ReturnType<T>>();
-
-  return function (...args: Parameters<T>): ReturnType<T> {
-    const key = JSON.stringify(args);
-    const cached = cache.get(key);
-    if (cached) return cached;
-
-    const result = fn(...args);
-    cache.set(key, result);
-    return result;
-  } as T;
-}
-
-/**
  *
  * @param buildType
  * @returns
  */
-export function loadEnv(buildType: string) {
+export function loadEnv(buildType: string, buildTypesConfig: BuildYaml) {
   return loadIni(
     join(__dirname, '../../../.metamaskrc'),
-    loadFeaturesAndDefinitions(buildType),
+    loadFeaturesAndDefinitions(buildType, buildTypesConfig),
   );
 }
 
@@ -83,10 +52,10 @@ export type BuildYaml = {
 /**
  *
  */
-export const loadBuildTypesConfig = memoize(function loadBuildTypesConfig(): BuildYaml {
-  const data = readFileSync(BUILDS_YML_PATH, "utf8");
+export const loadBuildTypesConfig = function loadBuildTypesConfig(): BuildYaml {
+  const data = readFileSync(BUILDS_YML_PATH, 'utf8');
   return parseYaml(data);
-});
+};
 
 export type BuildConfig = {
   definitions: Map<string, unknown>;
@@ -96,10 +65,13 @@ export type BuildConfig = {
 /**
  *
  * @param buildType
+ * @param buildTypesConfig
  * @returns
  */
-export function loadFeaturesAndDefinitions(buildType: string): BuildConfig {
-  const { buildTypes, env, features } = loadBuildTypesConfig();
+export function loadFeaturesAndDefinitions(
+  buildType: string,
+  { buildTypes, env, features }: BuildYaml,
+): BuildConfig {
   const activeBuild = buildTypes[buildType];
   const activeFeatures = activeBuild.features;
 

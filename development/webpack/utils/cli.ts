@@ -8,7 +8,7 @@ import type { Options as YargsOptions } from 'yargs';
 import yargs from 'yargs/yargs';
 import parser from 'yargs-parser';
 import { Browsers, type Manifest, uniqueSort, toOrange } from './helpers';
-import { loadBuildTypesConfig } from './config';
+import { type BuildYaml } from './config';
 
 const addFeat = 'add-feature' as const;
 const omitFeat = 'omit-feature' as const;
@@ -55,8 +55,7 @@ function getIsProduction(argv: string[], { env }: typeof envOptions): boolean {
  * `parseArgv(process.argv.slice(2))`.
  * @returns An object representing the parsed arguments.
  */
-export const parseArgv = (argv: string[]) => {
-  const { features, buildTypes } = loadBuildTypesConfig();
+export const parseArgv = (argv: string[], { features, buildTypes }: Omit<BuildYaml, "env">) => {
   const allBuildTypeNames = Object.keys(buildTypes);
   const allFeatureNames = Object.keys(features);
 
