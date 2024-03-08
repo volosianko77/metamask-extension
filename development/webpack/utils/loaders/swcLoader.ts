@@ -160,7 +160,6 @@ export default function swcLoader(this: Context, content: string, map: string) {
   transform(content, options).then(({ code, map }) => cb(null, code, map), cb);
 }
 
-
 /**
  * Gets the Speedy Web Compiler (SWC) loader for the given syntax.
  *
@@ -173,11 +172,11 @@ export function getSwcLoader(
   syntax: 'typescript' | 'ecmascript',
   enableJsx: boolean,
   swcConfig: {
-    args: Args,
-    envs: Record<string, string>,
-    browsersListQuery: string,
-    isDevelopment: boolean
-  }
+    args: Args;
+    safeVariables: Record<string, string>;
+    browsersListQuery: string;
+    isDevelopment: boolean;
+  },
 ) {
   return {
     loader: __filename,
@@ -190,11 +189,12 @@ export function getSwcLoader(
         transform: {
           react: {
             development: swcConfig.isDevelopment,
-            refresh: __HMR_READY__ && swcConfig.isDevelopment && swcConfig.args.watch,
+            refresh:
+              __HMR_READY__ && swcConfig.isDevelopment && swcConfig.args.watch,
           },
           optimizer: {
             globals: {
-              envs: swcConfig.envs || {},
+              envs: swcConfig.safeVariables || {},
             },
           },
         },

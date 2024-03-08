@@ -25,7 +25,7 @@ function loadEnv(rcFilePath: string): Map<string, unknown> {
  * @returns
  */
 export function getVariables({ type, env }: Args, buildTypesConfig: Build) {
-  const vars = loadConfigVars(type, buildTypesConfig);
+  const variables = loadConfigVars(type, buildTypesConfig);
   const version = getMetaMaskVersion();
   setEnvironmentVariables({
     buildType: type,
@@ -34,26 +34,42 @@ export function getVariables({ type, env }: Args, buildTypesConfig: Build) {
     variables: {
       set(key: string | Record<string, unknown>, value?: unknown): void {
         if (typeof key === 'object') {
-          Object.entries(key).forEach(([k, v]) => vars.set(k, v));
+          Object.entries(key).forEach(([k, v]) => variables.set(k, v));
         } else {
-          vars.set(key, value!);
+          variables.set(key, value!);
         }
       },
       isDefined(key: string): boolean {
-        return vars.has(key);
+        return variables.has(key);
       },
       get(key: string): unknown {
-        return vars.get(key);
+        return variables.get(key);
       },
       getMaybe(key: string): unknown {
-        return vars.get(key);
+        return variables.get(key);
       },
     },
     isDevBuild: env === 'development',
     isTestBuild: false,
     buildName: 'MetaMask',
   });
-  return vars;
+
+  // convert the variables to a format that can be used in the webpack build
+  const safeVariables: Record<string, string> = {};
+  variables.forEach((value, key) => {
+    if (value === null || value === undefined) return;
+    safeVariables[key] = JSON.stringify(value);
+  });
+  // special location for the PPOM_URI, as we don't want to copy the wasm file
+  // to the build directory like the gulp build does
+  variables.set(
+    'PPOM_URI',
+    `new URL('@blockaid/ppom_release/ppom_bg.wasm', import.meta.url)`,
+  );
+  // the `PPOM_URI` shouldn't be JSON stringified, as it's actually code
+  safeVariables.PPOM_URI = variables.get('PPOM_URI') as string;
+
+  return { variables, safeVariables };
 }
 
 export type Build = {

@@ -5,7 +5,6 @@ import { merge } from 'lodash';
 import { version } from 'webpack';
 import type { Chunk, EntryObject, Stats, Configuration } from 'webpack';
 import type TerserPluginType from 'terser-webpack-plugin';
-import { modes } from 'react-transition-group/SwitchTransition';
 
 export type Manifest = chrome.runtime.Manifest;
 export type ManifestV2 = chrome.runtime.ManifestV2;

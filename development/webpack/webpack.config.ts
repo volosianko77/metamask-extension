@@ -35,11 +35,9 @@ import { parseArgv, getDryRunMessage } from './utils/cli';
 import { type CodeFenceLoaderOptions } from './utils/loaders/codeFenceLoader';
 import { getSwcLoader } from './utils/loaders/swcLoader';
 import { getBuildTypes, getVariables } from './utils/config';
-import { type SemVerVersion } from '@metamask/utils';
 
 const buildTypes = getBuildTypes();
 const { args, cacheKey, features } = parseArgv(argv.slice(2), buildTypes);
-
 if (args['dry-run']) {
   console.error(getDryRunMessage(args, features));
   exit(0);
@@ -49,7 +47,6 @@ if (args['dry-run']) {
 if (args.lavamoat) {
   throw new Error("The webpack build doesn't support LavaMoat yet. So sorry.");
 }
-
 if (args.browser.length > 1) {
   throw new Error(
     `The webpack build doesn't support multiple browsers yet. So sorry.`,
@@ -59,41 +56,19 @@ if (args.browser.length > 1) {
 
 const context = join(__dirname, '../../app');
 const isDevelopment = args.env === 'development';
-
 const MANIFEST_VERSION = args.manifest_version;
 const manifestPath = join(context, `manifest/v${MANIFEST_VERSION}/_base.json`);
 const manifest: Manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 const { entry, canBeChunked } = collectEntries(manifest, context);
-
-// removes fenced code blocks from the source
-const codeFenceLoader: RuleSetRule & {
-  options: CodeFenceLoaderOptions;
-} = {
+const codeFenceLoader: RuleSetRule & { options: CodeFenceLoaderOptions } = {
   loader: require.resolve('./utils/loaders/codeFenceLoader'),
   options: { features },
 };
-
 const browsersListPath = join(context, '../.browserslistrc');
 // read .browserslist now to stop it from searching for the file over and over
 const browsersListQuery = readFileSync(browsersListPath, 'utf8');
-
-// TODO: build once, then copy to each browser's folder then update the
-// manifests
-const BROWSER = args.browser[0] as Browser;
-
-const variables = getVariables(args, buildTypes);
-// convert the variables to a format that can be used in the webpack build
-const envs: Record<string, string> = {};
-variables.forEach((value, key) => {
-  if (value === null || value === undefined) return;
-  envs[key] = JSON.stringify(value);
-});
-// PPOM_URI shouldn't be JSON stringified.
-variables.set(
-  'PPOM_URI',
-  `new URL('@blockaid/ppom_release/ppom_bg.wasm', import.meta.url)`,
-);
-envs.PPOM_URI = variables.get('PPOM_URI') as string;
+const BROWSER = args.browser[0] as Browser; // TODO: build once, then copy to each browser's folder then update the manifests
+const { variables, safeVariables } = getVariables(args, buildTypes);
 
 // #region cache
 const cache = args.cache
@@ -130,19 +105,13 @@ const cache = args.cache
 
 // #region plugins
 const plugins: WebpackPluginInstance[] = [
-  new SelfInjectPlugin({
-    test: /^scripts\/inpage\.js$/u,
-  }),
-
+  new SelfInjectPlugin({ test: /^scripts\/inpage\.js$/u }),
   // HtmlBundlerPlugin treats HTML files as entry points
   new HtmlBundlerPlugin({
-    preprocessorOptions: {
-      useWith: false, // usage of `with` is not compatible with the lavamoat build
-    },
+    preprocessorOptions: { useWith: false },
     minify: args.minify,
     integrity: 'auto',
   }),
-
   // use ProvidePlugin to polyfill *global* node variables
   new ProvidePlugin({
     // Make a global `Buffer` variable that points to the `buffer` package.
@@ -150,11 +119,9 @@ const plugins: WebpackPluginInstance[] = [
     // Make a global `process` variable that points to the `process` package.
     process: 'process/browser',
   }),
-
   new CopyPlugin({
     patterns: [
-      // translations
-      { from: join(context, '_locales'), to: '_locales' },
+      { from: join(context, '_locales'), to: '_locales' }, // translations
       // misc images
       // TODO: fix overlap between this folder and automatically bundled assets
       { from: join(context, 'images'), to: 'images' },
@@ -163,10 +130,8 @@ const plugins: WebpackPluginInstance[] = [
       {
         from: join(context, `manifest/v${MANIFEST_VERSION}/_base.json`),
         to: 'manifest.json',
-        transform: (manifestBytes: Buffer, _path: string) => {
-          const baseManifest: Manifest = JSON.parse(
-            manifestBytes.toString('utf8'),
-          );
+        transform: (bytes: Buffer, _path: string) => {
+          const baseManifest: Manifest = JSON.parse(bytes.toString('utf8'));
           const browserManifest = generateManifest(baseManifest, {
             browser: BROWSER,
             description: isDevelopment
@@ -175,7 +140,7 @@ const plugins: WebpackPluginInstance[] = [
                   8,
                 )}`
               : null,
-            version: variables.get('METAMASK_VERSION') as SemVerVersion,
+            version: variables.get('METAMASK_VERSION') as string,
           });
 
           if (args.devtool === 'source-map') {
@@ -203,18 +168,15 @@ const plugins: WebpackPluginInstance[] = [
     ],
   }),
 ];
-
 // enable React Refresh in 'development' mode when `watch` is enabled
 if (__HMR_READY__ && isDevelopment && args.watch) {
   const ReactRefreshWebpackPlugin: typeof ReactRefreshPluginType = require('@pmmmwh/react-refresh-webpack-plugin');
   plugins.push(new ReactRefreshWebpackPlugin());
 }
-
 if (args.progress) {
   const { ProgressPlugin } = require('webpack');
   plugins.push(new ProgressPlugin());
 }
-
 if (args.zip) {
   const { ZipPlugin } = require('./utils/plugins/ZipPlugin');
   const options = {
@@ -228,7 +190,7 @@ if (args.zip) {
 }
 // #endregion plugins
 
-const swcConfig = { args, envs, browsersListQuery, isDevelopment };
+const swcConfig = { args, safeVariables, browsersListQuery, isDevelopment };
 const tsxLoader = getSwcLoader('typescript', true, swcConfig);
 const jsxLoader = getSwcLoader('ecmascript', true, swcConfig);
 const ecmaLoader = getSwcLoader('ecmascript', false, swcConfig);
@@ -241,34 +203,18 @@ const config = {
   mode: args.env,
   stats: args.stats ? 'normal' : 'none',
   name: `MetaMask – ${args.env}`,
-
   // use the `.browserlistrc` file directly to avoid browserslist searching
   target: `browserslist:${browsersListPath}:defaults`,
-
   // TODO: look into using SourceMapDevToolPlugin and its exclude option to speed up the build
   // TODO: put source maps in an upper level directory (like the gulp build does now)
   // see: https://webpack.js.org/plugins/source-map-dev-tool-plugin/#host-source-maps-externally
   devtool: args.devtool === 'none' ? false : args.devtool,
-
   output: {
     wasmLoading: 'fetch',
     // required for `integrity` to work in the browser
     crossOriginLoading: 'anonymous',
     // filenames for *initial* files (essentially JS entry points)
     filename: '[name].[contenthash].js',
-    // chunkFilename is used because in some cases webpack may generate a
-    // filename that starts with "_", which chrome does not allow at the root
-    // of the extension directory (subdirectories are fine). If we switch to
-    // `output.module = true` this function must be updated to return an `.mjs`
-    // extension. Alternatively, we could output all js files to a
-    // subdirectory and not have to worry about it.
-    chunkFilename: ({ chunk }) => {
-      if (chunk!.id?.toString().startsWith('_')) {
-        return '-[id].[contenthash].js';
-      }
-      return '[id].[contenthash].js';
-    },
-
     path: join(__dirname, `../../dist/webpack/${BROWSER}`),
     // Clean the output directory before emit, so that only the latest build
     // files remain. Nearly 0 performance penalty for this clean up step.
@@ -276,20 +222,16 @@ const config = {
     // relative to HTML page. This value is essentially prepended to asset URLs
     // in the output HTML, i.e., `<script src="<publicPath><resourcePath>">`.
     publicPath: '',
-
     // disabling pathinfo makes reading the bundle harder, but reduces build
     // time by 500ms+
     pathinfo: false,
   },
-
   resolve: {
     // Disable symlinks for performance; saves about .5 seconds off full build
     symlinks: false,
-
     // Extensions added to the request when trying to find the file. The most
     // common extensions should be first to improve resolution performance.
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-
     // use `fallback` to redirect module requests when normal resolving fails,
     // good for polyfill-ing built-in node modules that aren't available in
     // the browser. The browser will first attempt to load these modules, if
@@ -304,7 +246,6 @@ const config = {
         ? require.resolve('remote-redux-devtools')
         : false,
       // #endregion conditionally remove developer tooling
-
       // #region node polyfills
       crypto: require.resolve('crypto-browserify'),
       fs: false,
@@ -317,7 +258,6 @@ const config = {
       // #endregion node polyfills
     },
   },
-
   // note: loaders in a `use` array are applied in *reverse* order, i.e., bottom
   // to top, (or right to left depending on the current formatting of the file)
   module: {
@@ -388,8 +328,8 @@ const config = {
                   join(__dirname, '../../node_modules'),
                 ],
                 // Disable the webpackImporter, as we:
-                //  a) don't want to rely on it in case we want to switch in
-                //     the future
+                //  a) don't want to rely on it in case we want to switch away
+                //     from webpack in the future
                 //  b) the sass importer is faster
                 //  c) the "modern" sass api doesn't work with the
                 //     webpackImporter yet.
@@ -431,8 +371,7 @@ const config = {
     // chunk changes, but the parent chunk does not.
     moduleIds: 'deterministic',
     chunkIds: 'deterministic',
-    minimize: args.minify,
-    minimizer: args.minify ? getMinimizers() : [],
+    ...(args.minify ? { minimize: true, minimizer: getMinimizers() } : {}),
     // Make most chunks share a single runtime file, which contains the
     // webpack "runtime". The exception is @lavamoat/snow and all scripts
     // found in the extension manifest; these scripts must be self-contained
@@ -453,7 +392,7 @@ const config = {
       // modules and cache group.
       cacheGroups: {
         js: {
-          // only our own ts/mts/tsx/js/mjs/jsx files (not in node_modules)
+          // only our own ts/mts/tsx/js/mjs/jsx files (NOT in node_modules)
           test: /(?!.*\/node_modules\/).+\.(?:m?[tj]s|[tj]sx?)?$/u,
           name: 'js',
           chunks: canBeChunked,
@@ -472,9 +411,8 @@ const config = {
   watch: args.watch,
   watchOptions: {
     aggregateTimeout: 5, // ms
-    // ignore node_modules, to avoid `fs.inotify.max_user_watches` issues
-    ignored: NODE_MODULES_RE,
+    ignored: NODE_MODULES_RE, // avoid `fs.inotify.max_user_watches` issues
   },
 } as const satisfies Configuration;
 
-export default config as Omit<typeof config, "watch"> & Partial<Pick<typeof config, "watch">>;
+export default config;
