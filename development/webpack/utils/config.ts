@@ -1,25 +1,22 @@
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { parse as parseYaml } from 'yaml';
-import { parse } from './ini';
+import { parse } from 'dotenv';
+import { setEnvironmentVariables } from '../../build/set-environment-variables';
+import { type Args } from './cli';
+import { getMetaMaskVersion } from './helpers';
 
 const BUILDS_YML_PATH = join(__dirname, '../../../builds.yml');
 
 /**
- *
- *
- * @param filePath
- * @param env
- * @returns
+ * @params rcFilePath - The path to the rc file.
+ * @returns The definitions loaded from the rc file.
  */
-function loadIni(
-  filePath: string,
-  { definitions }: Omit<BuildConfig, 'activeFeatures'>,
-) {
-  for (const { key, value } of parse(readFileSync(filePath))) {
-    definitions.set(key.toString('utf8'), value);
-  }
-  return { definitions };
+function loadEnv(rcFilePath: string): Map<string, unknown> {
+  const definitions = new Map<string, unknown>();
+  const rc = parse(readFileSync(rcFilePath, 'utf8'));
+  Object.entries(rc).forEach(([key, value]) => definitions.set(key, value));
+  return definitions;
 }
 
 /**
@@ -27,14 +24,39 @@ function loadIni(
  * @param buildType
  * @returns
  */
-export function loadEnv(buildType: string, buildTypesConfig: BuildYaml) {
-  return loadIni(
-    join(__dirname, '../../../.metamaskrc'),
-    loadFeaturesAndDefinitions(buildType, buildTypesConfig),
-  );
+export function getVariables({ type, env }: Args, buildTypesConfig: Build) {
+  const vars = loadConfigVars(type, buildTypesConfig);
+  const version = getMetaMaskVersion();
+  setEnvironmentVariables({
+    buildType: type,
+    version: type === 'main' ? `${version}` : `${version}-${type}.0`,
+    environment: env,
+    variables: {
+      set(key: string | Record<string, unknown>, value?: unknown): void {
+        if (typeof key === 'object') {
+          Object.entries(key).forEach(([k, v]) => vars.set(k, v));
+        } else {
+          vars.set(key, value!);
+        }
+      },
+      isDefined(key: string): boolean {
+        return vars.has(key);
+      },
+      get(key: string): unknown {
+        return vars.get(key);
+      },
+      getMaybe(key: string): unknown {
+        return vars.get(key);
+      },
+    },
+    isDevBuild: env === 'development',
+    isTestBuild: false,
+    buildName: 'MetaMask',
+  });
+  return vars;
 }
 
-export type BuildYaml = {
+export type Build = {
   buildTypes: Record<
     string,
     {
@@ -52,55 +74,34 @@ export type BuildYaml = {
 /**
  *
  */
-export function getBuildTypes(): BuildYaml {
-  const data = readFileSync(BUILDS_YML_PATH, 'utf8');
-  return parseYaml(data);
-};
-
-export type BuildConfig = {
-  definitions: Map<string, unknown>;
-  activeFeatures?: string[];
-};
+export function getBuildTypes(): Build {
+  return parseYaml(readFileSync(BUILDS_YML_PATH, 'utf8'));
+}
 
 /**
  *
- * @param buildType
- * @param buildTypesConfig
+ * @param type
+ * @param build
  * @returns
  */
-export function loadFeaturesAndDefinitions(
-  buildType: string,
-  { buildTypes, env, features }: BuildYaml,
-): BuildConfig {
-  const activeBuild = buildTypes[buildType];
-  const activeFeatures = activeBuild.features;
+function loadConfigVars(type: string, { env, buildTypes, features }: Build) {
+  const activeBuild = buildTypes[type];
 
-  const definitions = new Map<string, any>();
+  const definitions = loadEnv(join(__dirname, '../../../.metamaskrc'));
+  addVars(activeBuild.env);
+  activeBuild.features?.forEach((feature) => addVars(features[feature]?.env));
+  addVars(env);
 
-  // 1. build type env
-  activeBuild.env?.forEach((pair) => {
-    if (typeof pair === 'string') return;
-    Object.entries(pair).forEach(([key, value]) => definitions.set(key, value));
-  });
-
-  // 2. features env
-  activeFeatures?.forEach((feature) => {
-    features[feature]?.env?.forEach((pair) => {
+  function addVars(pairs?: (string | { [k: string]: unknown })[]): void {
+    pairs?.forEach((pair) => {
       if (typeof pair === 'string') return;
-      Object.entries(pair).forEach(
-        ([key, value]) => !definitions.has(key) && definitions.set(key, value),
-      );
-    });
-  });
-
-  // 3. root env
-  env.forEach((pair) => {
-    if (typeof pair === 'object') {
       Object.entries(pair).forEach(([key, value]) => {
-        !definitions.has(key) && definitions.set(key, value);
+        if (!definitions.has(key)) {
+          definitions.set(key, value);
+        }
       });
-    }
-  });
+    });
+  }
 
-  return { activeFeatures, definitions };
+  return definitions;
 }

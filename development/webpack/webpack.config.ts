@@ -18,7 +18,7 @@ import HtmlBundlerPlugin from 'html-bundler-webpack-plugin';
 import rtlCss from 'postcss-rtlcss';
 import autoprefixer from 'autoprefixer';
 import type ReactRefreshPluginType from '@pmmmwh/react-refresh-webpack-plugin';
-import { type SemVerVersion } from '@metamask/utils';
+import { SelfInjectPlugin } from './utils/plugins/SelfInjectPlugin';
 import {
   type Browser,
   type Manifest,
@@ -28,14 +28,13 @@ import {
   getMinimizers,
   NODE_MODULES_RE,
   __HMR_READY__,
+  getLastCommitHash,
 } from './utils/helpers';
-import { parseArgv } from './utils/cli';
+import { parseArgv, type Args } from './utils/cli';
 import { type CodeFenceLoaderOptions } from './utils/loaders/codeFenceLoader';
 import { type SwcLoaderOptions } from './utils/loaders/swcLoader';
-import { SelfInjectPlugin } from './utils/plugins/SelfInjectPlugin';
-import { getBuildTypes, loadEnv } from './utils/config';
-import { setEnvironmentVariables } from '../build/set-environment-variables';
-import { getVersion } from '../lib/get-version';
+import { getBuildTypes, getVariables } from './utils/config';
+import { type SemVerVersion } from '@metamask/utils';
 
 const buildTypes = getBuildTypes();
 const { args, cacheKey, features } = parseArgv(
@@ -109,7 +108,7 @@ const browsersListQuery = readFileSync(browsersListPath, 'utf8');
 function getSwcLoader(
   syntax: 'typescript' | 'ecmascript',
   enableJsx: boolean,
-  config: ReturnType<typeof parseArgv>['args'],
+  config: Args,
   envs: Record<string, string> = {},
 ) {
   return {
@@ -144,43 +143,16 @@ function getSwcLoader(
 // manifests
 const BROWSER = args.browser[0] as Browser;
 
-// TODO: make these dynamic. yargs, maybe?
-const NAME = 'MetaMask';
-const DESCRIPTION = `MetaMask ${BROWSER} Extension`;
-const METAMASK_VERSION = getVersion(args.type, 0) as SemVerVersion;
-const { definitions } = loadEnv(args.type, buildTypes);
-setEnvironmentVariables({
-  buildType: args.type,
-  version: METAMASK_VERSION,
-  environment: args.env,
-  variables: {
-    set(key: string | Record<string, unknown>, value?: unknown): void {
-      if (typeof key === 'object') {
-        Object.entries(key).forEach(([k, v]) => definitions.set(k, v));
-      } else {
-        definitions.set(key, value!);
-      }
-    },
-    isDefined(key: string): boolean {
-      return definitions.has(key);
-    },
-    get(key: string): unknown {
-      return definitions.get(key);
-    },
-    getMaybe(key: string): unknown {
-      return definitions.get(key);
-    },
-  },
-  isDevBuild: isDevelopment,
-  isTestBuild: false,
-  buildName: NAME,
-});
-const envsStringified: Record<string, string> = {};
-definitions.forEach((value, key) => {
+const variables = getVariables(args, buildTypes);
+// convert the variables to a format that can be used in the webpack build
+const safeVariables: Record<string, string> = {};
+variables.forEach((value, key) => {
   if (value === null || value === undefined) return;
-  envsStringified[key] = JSON.stringify(value);
+  safeVariables[key] = JSON.stringify(value);
 });
-envsStringified.PPOM_URI = `new URL('@blockaid/ppom_release/ppom_bg.wasm', import.meta.url)`;
+// PPOM_URI shouldn't be JSON stringified.
+variables.set("PPOM_URI", `new URL('@blockaid/ppom_release/ppom_bg.wasm', import.meta.url)`);
+safeVariables.PPOM_URI = variables.get("PPOM_URI") as string;
 
 // #region cache
 const cache = args.cache
@@ -255,11 +227,9 @@ const plugins: WebpackPluginInstance[] = [
             manifestBytes.toString('utf8'),
           );
           const browserManifest = generateManifest(baseManifest, {
-            env: args.env,
             browser: BROWSER,
-            description: DESCRIPTION,
-            name: NAME,
-            version: METAMASK_VERSION,
+            description: isDevelopment ? `${args.env} build from git id: ${getLastCommitHash().substring(0, 8)}` : null,
+            version: variables.get('METAMASK_VERSION') as SemVerVersion,
           });
 
           if (args.devtool === 'source-map') {
@@ -379,7 +349,7 @@ const config = {
         ? require.resolve('react-devtools')
         : false,
       // remove remote-redux-devtools unless METAMASK_DEBUG is enabled
-      'remote-redux-devtools': definitions.get('METAMASK_DEBUG')
+      'remote-redux-devtools': variables.get('METAMASK_DEBUG')
         ? require.resolve('remote-redux-devtools')
         : false,
       // #endregion conditionally remove developer tooling
@@ -409,7 +379,7 @@ const config = {
         test: /\.(?:ts|mts|tsx)$/u,
         exclude: NODE_MODULES_RE,
         use: [
-          getSwcLoader('typescript', true, args, envsStringified),
+          getSwcLoader('typescript', true, args, safeVariables),
           codeFenceLoader,
         ],
       },
@@ -418,7 +388,7 @@ const config = {
         test: /\.(?:js|mjs|jsx)$/u,
         exclude: NODE_MODULES_RE,
         use: [
-          getSwcLoader('ecmascript', true, args, envsStringified),
+          getSwcLoader('ecmascript', true, args, safeVariables),
           codeFenceLoader,
         ],
       },
@@ -432,7 +402,7 @@ const config = {
           // ESM is the worst thing to happen to JavaScript since JavaScript.
           fullySpecified: false,
         },
-        use: [getSwcLoader('ecmascript', false, args, envsStringified)],
+        use: [getSwcLoader('ecmascript', false, args, safeVariables)],
       },
       // css, sass/scss
       {

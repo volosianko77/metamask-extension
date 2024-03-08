@@ -58,11 +58,9 @@ export const getMetaMaskVersion = (): string => {
 };
 
 export type ManifestOptions = {
-  env: 'development' | 'production';
   browser: Browser;
   version: string;
-  name: string;
-  description: string;
+  description: string | null;
 };
 
 type ManifestTypeForVersion<T extends Manifest> =
@@ -72,7 +70,7 @@ export const generateManifest = (
   baseManifest: Manifest,
   options: ManifestOptions,
 ): ManifestTypeForVersion<typeof baseManifest> => {
-  const { version, name, description, browser } = options;
+  const { version, description, browser } = options;
 
   const browserManifestOverrides: Partial<Manifest> = require(join(
     __dirname,
@@ -81,8 +79,7 @@ export const generateManifest = (
 
   const overrides = {
     version,
-    name,
-    description,
+    description: description ? `${baseManifest.description} – ${description}` : baseManifest.description,
   };
 
   return merge(
@@ -220,6 +217,20 @@ function assertValidEntryFileName(filename: string, appRoot: string) {
   });
 }
 
+export function getLastCommitHash(gitDir = join(__dirname, '../../../.git')){
+  // read .git/HEAD to get the current branch/commit
+  const ref = readFileSync(join(gitDir, 'HEAD'), 'utf8').trim();
+
+  // determine if we're in a detached HEAD state or on a branch
+  const oid = ref.startsWith('ref: ')
+    ? // HEAD is pointer to a branch; load the commit hash
+      readFileSync(join(gitDir, ref.slice(5)), 'utf8').trim()
+    : // HEAD is detached; so use the commit hash directly
+      ref;
+
+   return oid;
+}
+
 /**
  * Retrieves the timestamp of the last commit in UTC for the current Git branch.
  *
@@ -236,22 +247,14 @@ function assertValidEntryFileName(filename: string, appRoot: string) {
  * @throws Throws an error if the current branch is detached or has no commits.
  * May also throw if the Git repository is malformed (or not found).
  */
-export function getLastCommitTimestamp(gitDir = join(__dirname, '..', '.git')) {
+export function getLastCommitTimestamp(gitDir = join(__dirname, '../../../.git')) {
   // Note: this function is synchronous because it's faster this way
 
   // use `unzipSync` from zlib since git uses zlib-wrapped DEFLATE
   // loaded in this way to avoid requiring it when this function isn't used.
   const { unzipSync } = require('node:zlib') as typeof zlib;
 
-  // read .git/HEAD to get the current branch/commit
-  const ref = readFileSync(join(gitDir, 'HEAD'), 'utf8').trim();
-
-  // determine if we're in a detached HEAD state or on a branch
-  const oid = ref.startsWith('ref: ')
-    ? // HEAD is pointer to a branch; load the commit hash
-      readFileSync(join(gitDir, ref.slice(5)), 'utf8').trim()
-    : // HEAD is detached; so use the commit hash directly
-      ref;
+  const oid = getLastCommitHash(gitDir);
 
   // read the commit object from the file system
   const commitPath = join(gitDir, 'objects', oid.slice(0, 2), oid.slice(2));

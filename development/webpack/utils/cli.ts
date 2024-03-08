@@ -8,7 +8,7 @@ import type { Options as YargsOptions } from 'yargs';
 import yargs from 'yargs/yargs';
 import parser from 'yargs-parser';
 import { Browsers, type Manifest, uniqueSort, toOrange } from './helpers';
-import { type BuildYaml } from './config';
+import { type Build } from './config';
 
 const addFeat = 'add-feature' as const;
 const omitFeat = 'omit-feature' as const;
@@ -48,14 +48,20 @@ function getIsProduction(argv: string[], { env }: typeof envOptions): boolean {
 }
 
 /**
+ * Type representing the parsed arguments
+ */
+export type Args = ReturnType<typeof parseArgv>["args"];
+
+/**
  * Parses an array of command line arguments into a structured format.
  *
  * @param argv - An array of command line arguments, excluding the program
  * executable and file name. Typically used as
  * `parseArgv(process.argv.slice(2))`.
+ * @param buildConfig - The build config.
  * @returns An object representing the parsed arguments.
  */
-export const parseArgv = (argv: string[], { features, buildTypes }: Omit<BuildYaml, "env">) => {
+export function parseArgv(argv: string[], { buildTypes, features }: Build) {
   const allBuildTypeNames = Object.keys(buildTypes);
   const allFeatureNames = Object.keys(features);
 
