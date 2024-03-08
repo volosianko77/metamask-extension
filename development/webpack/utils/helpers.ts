@@ -5,6 +5,7 @@ import { merge } from 'lodash';
 import { version } from 'webpack';
 import type { Chunk, EntryObject, Stats, Configuration } from 'webpack';
 import type TerserPluginType from 'terser-webpack-plugin';
+import { modes } from 'react-transition-group/SwitchTransition';
 
 export type Manifest = chrome.runtime.Manifest;
 export type ManifestV2 = chrome.runtime.ManifestV2;
@@ -311,6 +312,8 @@ export const { colors, toGreen, toOrange, toPurple } = ((depth, esc) => {
   };
 })((process.stderr.getColorDepth?.() as 1 | 4 | 8 | 24) || 1, '\u001b');
 
+export type LogStatsConfig = Pick<Configuration, "mode" | "stats">;
+
 /**
  * Logs a summary of build information to `process.stderr`.
  *
@@ -320,7 +323,7 @@ export const { colors, toGreen, toOrange, toPurple } = ((depth, esc) => {
  * @param err - If not `undefined`, logs the error to `process.stderr`.
  * @param stats - If not `undefined`, logs the stats to `process.stderr`.
  */
-export function logStats(config: Configuration, err?: Error, stats?: Stats) {
+export function logStats(config: LogStatsConfig, err?: Error, stats?: Stats) {
   err && console.error(err);
 
   if (!stats) {

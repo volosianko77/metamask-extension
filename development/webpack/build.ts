@@ -15,8 +15,10 @@ require('browserslist/node').getStat = noop;
 export function build(onComplete: () => void = noop) {
   const isDevelopment = config.mode === 'development';
 
-  const compiler = webpack(config);
-  if (__HMR_READY__ && config.watch) {
+  const { watch, ...options } = config;
+  const compiler = webpack(options);
+  if (__HMR_READY__ && watch) {
+    // DISABLED BECAUSE WE AREN'T `__HMR_READY__` YET
     // Use `webpack-dev-server` to enable HMR
     const WebpackDevServer: typeof WebpackDevServerType = require('webpack-dev-server');
     const options = {
@@ -40,16 +42,16 @@ export function build(onComplete: () => void = noop) {
     const server = new WebpackDevServer(options, compiler);
     server.start().then(() => console.log('🦊 Watching for changes…'))
   } else {
-    console.error(`🦊 Running ${config.mode} build…`);
-    if (config.watch) {
+    console.error(`🦊 Running ${options.mode} build…`);
+    if (watch) {
       // once HMR is ready (__HMR_READY__ variable), this section should be removed.
-      compiler.watch(config.watchOptions, (err, stats) => {
-        logStats(config, err ?? undefined, stats);
+      compiler.watch(options.watchOptions, (err, stats) => {
+        logStats(options, err ?? undefined, stats);
         console.error('🦊 Watching for changes…');
       });
     } else {
       compiler.run((err, stats) => {
-        logStats(config, err ?? undefined, stats);
+        logStats(options, err ?? undefined, stats);
         // `onComplete` must be called synchronously _before_ `compiler.close`
         // or the caller might observe output from the `close` command.
         onComplete();

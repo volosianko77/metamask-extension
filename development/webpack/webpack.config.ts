@@ -70,9 +70,7 @@ const codeFenceLoader: RuleSetRule & {
   options: CodeFenceLoaderOptions;
 } = {
   loader: require.resolve('./utils/loaders/codeFenceLoader'),
-  options: {
-    features,
-  },
+  options: { features },
 };
 
 const browsersListPath = join(context, '../.browserslistrc');
@@ -85,17 +83,17 @@ const BROWSER = args.browser[0] as Browser;
 
 const variables = getVariables(args, buildTypes);
 // convert the variables to a format that can be used in the webpack build
-const safeVariables: Record<string, string> = {};
+const envs: Record<string, string> = {};
 variables.forEach((value, key) => {
   if (value === null || value === undefined) return;
-  safeVariables[key] = JSON.stringify(value);
+  envs[key] = JSON.stringify(value);
 });
 // PPOM_URI shouldn't be JSON stringified.
 variables.set(
   'PPOM_URI',
   `new URL('@blockaid/ppom_release/ppom_bg.wasm', import.meta.url)`,
 );
-safeVariables.PPOM_URI = variables.get('PPOM_URI') as string;
+envs.PPOM_URI = variables.get('PPOM_URI') as string;
 
 // #region cache
 const cache = args.cache
@@ -230,6 +228,11 @@ if (args.zip) {
 }
 // #endregion plugins
 
+const swcConfig = { args, envs, browsersListQuery, isDevelopment };
+const tsxLoader = getSwcLoader('typescript', true, swcConfig);
+const jsxLoader = getSwcLoader('ecmascript', true, swcConfig);
+const ecmaLoader = getSwcLoader('ecmascript', false, swcConfig);
+
 const config = {
   entry,
   cache,
@@ -315,10 +318,9 @@ const config = {
     },
   },
 
+  // note: loaders in a `use` array are applied in *reverse* order, i.e., bottom
+  // to top, (or right to left depending on the current formatting of the file)
   module: {
-    // an important note: loaders in a `use` array are applied in *reverse*
-    // order, i.e., bottom to top, (or right to left depending on the current
-    // formatting of the file)
     rules: [
       // json
       { test: /\.json$/u, type: 'json' },
@@ -326,19 +328,13 @@ const config = {
       {
         test: /\.(?:ts|mts|tsx)$/u,
         exclude: NODE_MODULES_RE,
-        use: [
-          getSwcLoader('typescript', true, args, safeVariables, isDevelopment, browsersListQuery),
-          codeFenceLoader,
-        ],
+        use: [tsxLoader, codeFenceLoader],
       },
       // own javascript, and own javascript with jsx
       {
         test: /\.(?:js|mjs|jsx)$/u,
         exclude: NODE_MODULES_RE,
-        use: [
-          getSwcLoader('ecmascript', true, args, safeVariables),
-          codeFenceLoader,
-        ],
+        use: [jsxLoader, codeFenceLoader],
       },
       // vendor javascript
       {
@@ -347,10 +343,10 @@ const config = {
         // never process `@lavamoat/snow/**.*`
         exclude: /^.*\/node_modules\/@lavamoat\/snow\/.*$/u,
         resolve: {
-          // ESM is the worst thing to happen to JavaScript since JavaScript.
+          // `fullySpecified: false` can be removed once https://github.com/MetaMask/key-tree/issues/152 is resolved
           fullySpecified: false,
         },
-        use: [getSwcLoader('ecmascript', false, args, safeVariables)],
+        use: [ecmaLoader],
       },
       // css, sass/scss
       {
@@ -375,17 +371,14 @@ const config = {
             options: {
               sassOptions: {
                 api: 'modern',
-
                 // We don't need to specify the charset because the HTML
                 // already does and browsers use the HTML's charset for CSS.
                 // Additionally, webpack + sass can cause problems with the
                 // charset placement, as described here:
                 // https://github.com/webpack-contrib/css-loader/issues/1212
                 charset: false,
-
                 // Use 'sass-embedded', as it is usually faster than 'sass'
                 implementation: 'sass-embedded',
-
                 // The order of includePaths is important; prefer our own
                 // folders over `node_modules`
                 includePaths: [
@@ -394,7 +387,6 @@ const config = {
                   join(__dirname, '../../ui/css'),
                   join(__dirname, '../../node_modules'),
                 ],
-
                 // Disable the webpackImporter, as we:
                 //  a) don't want to rely on it in case we want to switch in
                 //     the future
@@ -418,7 +410,6 @@ const config = {
       },
     ],
   },
-
   node: {
     // eventually we should avoid any code that uses node globals `__dirname`,
     // `__filename`, and `global`. But for now, just warn about their use.
@@ -429,7 +420,6 @@ const config = {
     // instead.
     global: true,
   },
-
   optimization: {
     // only enable sideEffects, providedExports, removeAvailableModules, and
     // usedExports for production, as these options slow down the build
@@ -437,14 +427,12 @@ const config = {
     providedExports: !isDevelopment,
     removeAvailableModules: !isDevelopment,
     usedExports: !isDevelopment,
-
     // 'deterministic' results in faster recompilations in cases where a child
     // chunk changes, but the parent chunk does not.
     moduleIds: 'deterministic',
     chunkIds: 'deterministic',
     minimize: args.minify,
     minimizer: args.minify ? getMinimizers() : [],
-
     // Make most chunks share a single runtime file, which contains the
     // webpack "runtime". The exception is @lavamoat/snow and all scripts
     // found in the extension manifest; these scripts must be self-contained
@@ -479,12 +467,8 @@ const config = {
       },
     },
   },
-
-  performance: {
-    // don't warn about large JS assets, unless they are going to be too big
-    maxAssetSize: 1 << 22,
-  },
-
+  // don't warn about large JS assets, unless they are going to be too big for Firefox
+  performance: { maxAssetSize: 1 << 22 },
   watch: args.watch,
   watchOptions: {
     aggregateTimeout: 5, // ms
@@ -493,4 +477,4 @@ const config = {
   },
 } as const satisfies Configuration;
 
-export default config;
+export default config as Omit<typeof config, "watch"> & Partial<Pick<typeof config, "watch">>;

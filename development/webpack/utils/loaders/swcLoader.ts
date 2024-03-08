@@ -166,34 +166,35 @@ export default function swcLoader(this: Context, content: string, map: string) {
  *
  * @param syntax
  * @param enableJsx
- * @param config
- * @param envs
+ * @param swcConfig
  * @returns
  */
 export function getSwcLoader(
   syntax: 'typescript' | 'ecmascript',
   enableJsx: boolean,
-  config: Args,
-  envs: Record<string, string> = {},
-  browsersListQuery: string,
-  isDevelopment: boolean
+  swcConfig: {
+    args: Args,
+    envs: Record<string, string>,
+    browsersListQuery: string,
+    isDevelopment: boolean
+  }
 ) {
   return {
-    loader: require.resolve('./utils/loaders/swcLoader'),
+    loader: __filename,
     options: {
       env: {
-        targets: browsersListQuery,
+        targets: swcConfig.browsersListQuery,
       },
       jsc: {
         externalHelpers: true,
         transform: {
           react: {
-            development: isDevelopment,
-            refresh: __HMR_READY__ && isDevelopment && config.watch,
+            development: swcConfig.isDevelopment,
+            refresh: __HMR_READY__ && swcConfig.isDevelopment && swcConfig.args.watch,
           },
           optimizer: {
             globals: {
-              envs,
+              envs: swcConfig.envs || {},
             },
           },
         },
