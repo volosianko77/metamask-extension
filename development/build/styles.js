@@ -6,7 +6,6 @@ const watch = require('gulp-watch');
 const sourcemaps = require('gulp-sourcemaps');
 const rtlcss = require('postcss-rtlcss');
 const postcss = require('gulp-postcss');
-const urlrewrite = require('postcss-urlrewrite');
 const pump = pify(require('pump'));
 const sass = require('sass-embedded');
 const gulpSass = require('gulp-sass')(sass);
@@ -88,18 +87,7 @@ async function buildScssPipeline(src, dest, devMode) {
           '-mm-fa-path()': () => new sass.SassString('./fonts/fontawesome'),
         },
       }).on('error', gulpSass.logError),
-      postcss([
-        urlrewrite({
-          rules: [
-            {
-              from: /^\/app\/images\//u,
-              to: 'images/',
-            },
-          ],
-        }),
-        autoprefixer(),
-        rtlcss(),
-      ]),
+      postcss([autoprefixer(), rtlcss()]),
       devMode && sourcemaps.write(),
       gulp.dest(dest),
     ].filter(Boolean),

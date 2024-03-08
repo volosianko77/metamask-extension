@@ -25522,7 +25522,6 @@ __metadata:
     postcss: "npm:^8.4.32"
     postcss-loader: "npm:^8.1.1"
     postcss-rtlcss: "npm:^4.0.9"
-    postcss-urlrewrite: "npm:^0.2.2"
     prettier: "npm:^2.7.1"
     prettier-eslint: "npm:^16.3.0"
     prettier-plugin-sort-json: "npm:^1.0.0"
@@ -28624,15 +28623,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-helpers@npm:^0.3.2":
-  version: 0.3.3
-  resolution: "postcss-helpers@npm:0.3.3"
-  dependencies:
-    urijs: "npm:^1.18.12"
-  checksum: b8f1f20bacfe3e3017be7859288761200b5c3e6d444daa4a237d61903466603d9c43ff3f828312fb7263060f1d3f42c3ecc8d1c6e736a76f342f23e972ea98ef
-  languageName: node
-  linkType: hard
-
 "postcss-html@npm:^0.36.0":
   version: 0.36.0
   resolution: "postcss-html@npm:0.36.0"
@@ -28817,15 +28807,6 @@ __metadata:
   peerDependencies:
     postcss: ">=5.0.0"
   checksum: dfaabd32d3d657d61123b708bc4dbe757538f35d48ff32ce8619d53305d35c1a79fce33b3319d38b01e8139dc122e37a4ba2f356d85def54ea22db83b4c3aedd
-  languageName: node
-  linkType: hard
-
-"postcss-urlrewrite@npm:^0.2.2":
-  version: 0.2.2
-  resolution: "postcss-urlrewrite@npm:0.2.2"
-  dependencies:
-    postcss-helpers: "npm:^0.3.2"
-  checksum: 3aba1decf80b0b9dbe3b19539aeb19438fd453733dd5ad67b1a90119e63d526417b96ce8d27db62ee0fc677e07645a380a0c0ce2ed9598a1dc0d228ac33beccc
   languageName: node
   linkType: hard
 
@@ -35160,13 +35141,6 @@ __metadata:
   dependencies:
     punycode: "npm:^2.1.0"
   checksum: e9499d30bfa7559acc255ab196bf7be0db9e5e5550cc0dfd8aeaeabbe423c323b18e261b31b996a409465b29f6ad814f8683f0c4f476ee347a57103dba0fb7f7
-  languageName: node
-  linkType: hard
-
-"urijs@npm:^1.18.12":
-  version: 1.19.11
-  resolution: "urijs@npm:1.19.11"
-  checksum: 2aa5547b53c37ebee03a8ad70feae1638a37cc4c7e543abbffb14fc86b17f84f303d08e45c501441410c025bab22aa84673c97604b7b2619967f1dd49f69931f
   languageName: node
   linkType: hard
 
