@@ -51,6 +51,7 @@ function getIsProduction(argv: string[], { env }: typeof envOptions): boolean {
  * Type representing the parsed arguments
  */
 export type Args = ReturnType<typeof parseArgv>["args"];
+export type Features = ReturnType<typeof parseArgv>["features"];
 
 /**
  * Parses an array of command line arguments into a structured format.
@@ -295,4 +296,24 @@ function getOptions(
       type: 'boolean',
     },
   } as const satisfies YargsOptionsMap;
+}
+
+
+export function getDryRunMessage(args: Args, features: Features){
+  return `🦊 Build Config 🦊
+
+Environment: ${args.env}
+Minify: ${args.minify}
+Watch: ${args.watch}
+Cache: ${args.cache}
+Progress: ${args.progress}
+Zip: ${args.zip}
+Snow: ${args.snow}
+LavaMoat: ${args.lavamoat}
+Manifest version: ${args.manifest_version}
+Browsers: ${args.browser.join(', ')}
+Devtool: ${args.devtool}
+Build type: ${args.type}
+Features: ${[...features.active].join(', ')}
+`
 }

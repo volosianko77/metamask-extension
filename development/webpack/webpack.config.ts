@@ -4,6 +4,7 @@
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { argv, exit } from 'node:process';
 import {
   ProvidePlugin,
   type RuleSetRule,
@@ -30,36 +31,18 @@ import {
   __HMR_READY__,
   getLastCommitHash,
 } from './utils/helpers';
-import { parseArgv, type Args } from './utils/cli';
+import { parseArgv, getDryRunMessage } from './utils/cli';
 import { type CodeFenceLoaderOptions } from './utils/loaders/codeFenceLoader';
-import { type SwcLoaderOptions } from './utils/loaders/swcLoader';
+import { getSwcLoader } from './utils/loaders/swcLoader';
 import { getBuildTypes, getVariables } from './utils/config';
 import { type SemVerVersion } from '@metamask/utils';
 
 const buildTypes = getBuildTypes();
-const { args, cacheKey, features } = parseArgv(
-  process.argv.slice(2),
-  buildTypes,
-);
+const { args, cacheKey, features } = parseArgv(argv.slice(2), buildTypes);
 
 if (args['dry-run']) {
-  console.error(`🦊 Build Config 🦊
-
-Environment: ${args.env}
-Minify: ${args.minify}
-Watch: ${args.watch}
-Cache: ${args.cache}
-Progress: ${args.progress}
-Zip: ${args.zip}
-Snow: ${args.snow}
-LavaMoat: ${args.lavamoat}
-Manifest version: ${args.manifest_version}
-Browsers: ${args.browser.join(', ')}
-Devtool: ${args.devtool}
-Build type: ${args.type}
-Features: ${[...features.active].join(', ')}
-`);
-  process.exit(0);
+  console.error(getDryRunMessage(args, features));
+  exit(0);
 }
 
 // #region temporary short circuit for unsupported build configurations
@@ -96,49 +79,6 @@ const browsersListPath = join(context, '../.browserslistrc');
 // read .browserslist now to stop it from searching for the file over and over
 const browsersListQuery = readFileSync(browsersListPath, 'utf8');
 
-/**
- * Gets the Speedy Web Compiler (SWC) loader for the given syntax.
- *
- * @param syntax
- * @param enableJsx
- * @param config
- * @param envs
- * @returns
- */
-function getSwcLoader(
-  syntax: 'typescript' | 'ecmascript',
-  enableJsx: boolean,
-  config: Args,
-  envs: Record<string, string> = {},
-) {
-  return {
-    loader: require.resolve('./utils/loaders/swcLoader'),
-    options: {
-      env: {
-        targets: browsersListQuery,
-      },
-      jsc: {
-        externalHelpers: true,
-        transform: {
-          react: {
-            development: isDevelopment,
-            refresh: __HMR_READY__ && isDevelopment && config.watch,
-          },
-          optimizer: {
-            globals: {
-              envs,
-            },
-          },
-        },
-        parser: {
-          syntax,
-          [syntax === 'typescript' ? 'tsx' : 'jsx']: enableJsx,
-        },
-      },
-    } as const satisfies SwcLoaderOptions,
-  };
-}
-
 // TODO: build once, then copy to each browser's folder then update the
 // manifests
 const BROWSER = args.browser[0] as Browser;
@@ -151,8 +91,11 @@ variables.forEach((value, key) => {
   safeVariables[key] = JSON.stringify(value);
 });
 // PPOM_URI shouldn't be JSON stringified.
-variables.set("PPOM_URI", `new URL('@blockaid/ppom_release/ppom_bg.wasm', import.meta.url)`);
-safeVariables.PPOM_URI = variables.get("PPOM_URI") as string;
+variables.set(
+  'PPOM_URI',
+  `new URL('@blockaid/ppom_release/ppom_bg.wasm', import.meta.url)`,
+);
+safeVariables.PPOM_URI = variables.get('PPOM_URI') as string;
 
 // #region cache
 const cache = args.cache
@@ -228,7 +171,12 @@ const plugins: WebpackPluginInstance[] = [
           );
           const browserManifest = generateManifest(baseManifest, {
             browser: BROWSER,
-            description: isDevelopment ? `${args.env} build from git id: ${getLastCommitHash().substring(0, 8)}` : null,
+            description: isDevelopment
+              ? `${args.env} build from git id: ${getLastCommitHash().substring(
+                  0,
+                  8,
+                )}`
+              : null,
             version: variables.get('METAMASK_VERSION') as SemVerVersion,
           });
 
@@ -379,7 +327,7 @@ const config = {
         test: /\.(?:ts|mts|tsx)$/u,
         exclude: NODE_MODULES_RE,
         use: [
-          getSwcLoader('typescript', true, args, safeVariables),
+          getSwcLoader('typescript', true, args, safeVariables, isDevelopment, browsersListQuery),
           codeFenceLoader,
         ],
       },

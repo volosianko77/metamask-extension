@@ -3,6 +3,8 @@ import type { JSONSchema7 } from 'schema-utils/declarations/validate';
 import type { FromSchema } from 'json-schema-to-ts';
 import { validate } from 'schema-utils';
 import { transform, type Options } from '@swc/core';
+import { type Args } from '../cli';
+import { __HMR_READY__ } from '../helpers';
 
 // the schema here is limited to only the options we actually use
 // there are loads more options available to SWC we could add.
@@ -156,4 +158,50 @@ export default function swcLoader(this: Context, content: string, map: string) {
 
   const cb = this.async();
   transform(content, options).then(({ code, map }) => cb(null, code, map), cb);
+}
+
+
+/**
+ * Gets the Speedy Web Compiler (SWC) loader for the given syntax.
+ *
+ * @param syntax
+ * @param enableJsx
+ * @param config
+ * @param envs
+ * @returns
+ */
+export function getSwcLoader(
+  syntax: 'typescript' | 'ecmascript',
+  enableJsx: boolean,
+  config: Args,
+  envs: Record<string, string> = {},
+  browsersListQuery: string,
+  isDevelopment: boolean
+) {
+  return {
+    loader: require.resolve('./utils/loaders/swcLoader'),
+    options: {
+      env: {
+        targets: browsersListQuery,
+      },
+      jsc: {
+        externalHelpers: true,
+        transform: {
+          react: {
+            development: isDevelopment,
+            refresh: __HMR_READY__ && isDevelopment && config.watch,
+          },
+          optimizer: {
+            globals: {
+              envs,
+            },
+          },
+        },
+        parser: {
+          syntax,
+          [syntax === 'typescript' ? 'tsx' : 'jsx']: enableJsx,
+        },
+      },
+    } as const satisfies SwcLoaderOptions,
+  };
 }
