@@ -52,7 +52,7 @@ export type BuildYaml = {
 /**
  *
  */
-export const loadBuildTypesConfig = function loadBuildTypesConfig(): BuildYaml {
+export function getBuildTypes(): BuildYaml {
   const data = readFileSync(BUILDS_YML_PATH, 'utf8');
   return parseYaml(data);
 };

@@ -33,12 +33,15 @@ import { parseArgv } from './utils/cli';
 import { type CodeFenceLoaderOptions } from './utils/loaders/codeFenceLoader';
 import { type SwcLoaderOptions } from './utils/loaders/swcLoader';
 import { SelfInjectPlugin } from './utils/plugins/SelfInjectPlugin';
-import { loadBuildTypesConfig, loadEnv } from './utils/config';
+import { getBuildTypes, loadEnv } from './utils/config';
 import { setEnvironmentVariables } from '../build/set-environment-variables';
 import { getVersion } from '../lib/get-version';
 
-const buildTypesConfig = loadBuildTypesConfig();
-const { args, cacheKey, features } = parseArgv(process.argv.slice(2), buildTypesConfig);
+const buildTypes = getBuildTypes();
+const { args, cacheKey, features } = parseArgv(
+  process.argv.slice(2),
+  buildTypes,
+);
 
 if (args['dry-run']) {
   console.error(`🦊 Build Config 🦊
@@ -54,7 +57,7 @@ LavaMoat: ${args.lavamoat}
 Manifest version: ${args.manifest_version}
 Browsers: ${args.browser.join(', ')}
 Devtool: ${args.devtool}
-Built type: ${args.type}
+Build type: ${args.type}
 Features: ${[...features.active].join(', ')}
 `);
   process.exit(0);
@@ -77,7 +80,7 @@ const isDevelopment = args.env === 'development';
 
 const MANIFEST_VERSION = args.manifest_version;
 const manifestPath = join(context, `manifest/v${MANIFEST_VERSION}/_base.json`);
-const manifest: Manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+const manifest: Manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 const { entry, canBeChunked } = collectEntries(manifest, context);
 
 // removes fenced code blocks from the source
@@ -92,7 +95,7 @@ const codeFenceLoader: RuleSetRule & {
 
 const browsersListPath = join(context, '../.browserslistrc');
 // read .browserslist now to stop it from searching for the file over and over
-const browsersListQuery = readFileSync(browsersListPath, "utf8");
+const browsersListQuery = readFileSync(browsersListPath, 'utf8');
 
 /**
  * Gets the Speedy Web Compiler (SWC) loader for the given syntax.
@@ -128,16 +131,10 @@ function getSwcLoader(
             },
           },
         },
-        parser:
-          syntax === 'typescript'
-            ? {
-                syntax,
-                tsx: enableJsx,
-              }
-            : {
-                syntax,
-                jsx: enableJsx,
-              },
+        parser: {
+          syntax,
+          [syntax === 'typescript' ? 'tsx' : 'jsx']: enableJsx,
+        },
       },
     } as const satisfies SwcLoaderOptions,
   };
@@ -151,7 +148,7 @@ const BROWSER = args.browser[0] as Browser;
 const NAME = 'MetaMask';
 const DESCRIPTION = `MetaMask ${BROWSER} Extension`;
 const METAMASK_VERSION = getVersion(args.type, 0) as SemVerVersion;
-const { definitions } = loadEnv(args.type, buildTypesConfig);
+const { definitions } = loadEnv(args.type, buildTypes);
 setEnvironmentVariables({
   buildType: args.type,
   version: METAMASK_VERSION,
@@ -382,7 +379,7 @@ const config = {
         ? require.resolve('react-devtools')
         : false,
       // remove remote-redux-devtools unless METAMASK_DEBUG is enabled
-      'remote-redux-devtools': definitions.get("METAMASK_DEBUG")
+      'remote-redux-devtools': definitions.get('METAMASK_DEBUG')
         ? require.resolve('remote-redux-devtools')
         : false,
       // #endregion conditionally remove developer tooling
