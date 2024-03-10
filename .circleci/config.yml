@@ -402,7 +402,17 @@ jobs:
           command: .circleci/scripts/install-dependencies.sh
       - run:
           name: print
-          command: echo << pipeline.project.git_url >>
+          command: echo << .Environment.CIRCLE_PR_REPONAME >>
+      - when:
+          condition:
+            not:
+              matches:
+                pattern: /^master$/
+                value: << .Environment.CIRCLE_PR_REPONAME >>
+          steps:
+            - run:
+                name: print 2
+                command: echo << .Environment.CIRCLE_PR_REPONAME >>
       - save_cache:
           key: dependency-cache-{{ checksum "/tmp/YARN_VERSION" }}-{{ checksum "yarn.lock" }}
           paths:
