@@ -402,17 +402,17 @@ jobs:
           command: .circleci/scripts/install-dependencies.sh
       - run:
           name: print
-          command: echo $CIRCLE_PROJECT_USERNAME
-      # - when:
-      #     condition:
-      #       not:
-      #         matches:
-      #           pattern: /^master$/
-      #           value: << .Environment.CIRCLE_PR_REPONAME >>
-      #     steps:
-      #       - run:
-      #           name: print 2
-      #           command: echo << .Environment.CIRCLE_PR_REPONAME >>
+          command: echo $INFURA_PROJECT_ID
+      - when:
+          condition:
+            not:
+              matches:
+                pattern: /^master$/
+                value: << .Environment.INFURA_PROJECT_ID >>
+          steps:
+            - run:
+                name: print 2
+                command: echo << .Environment.INFURA_PROJECT_ID >>
       - save_cache:
           key: dependency-cache-{{ checksum "/tmp/YARN_VERSION" }}-{{ checksum "yarn.lock" }}
           paths:
