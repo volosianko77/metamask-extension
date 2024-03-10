@@ -402,7 +402,7 @@ jobs:
           command: .circleci/scripts/install-dependencies.sh
       - run:
           name: print
-          command: echo $CIRCLE_PR_REPONAME
+          command: echo $CIRCLE_PROJECT_USERNAME
       # - when:
       #     condition:
       #       not:
