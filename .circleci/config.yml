@@ -378,6 +378,10 @@ jobs:
 
   prep-deps:
     executor: node-browsers-small
+    parameters:
+      infura-project-id:
+        type: env_var_name
+        default: INFURA_PROJECT_ID
     steps:
       - run: *shallow-git-clone
       - run:
@@ -408,11 +412,11 @@ jobs:
             not:
               matches:
                 pattern: /^master$/
-                value: << .Environment.INFURA_PROJECT_ID >>
+                value: << parameters.infura-project-id >>
           steps:
             - run:
                 name: print 2
-                command: echo << .Environment.INFURA_PROJECT_ID >>
+                command: echo << parameters.infura-project-id >>
       - save_cache:
           key: dependency-cache-{{ checksum "/tmp/YARN_VERSION" }}-{{ checksum "yarn.lock" }}
           paths:
