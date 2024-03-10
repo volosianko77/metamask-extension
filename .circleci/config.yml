@@ -406,7 +406,7 @@ jobs:
           command: .circleci/scripts/install-dependencies.sh
       - run:
           name: print
-          command: echo $INFURA_PROJECT_ID
+          command: echo << parameters.infura-project-id >>
       - when:
           condition:
             matches:
