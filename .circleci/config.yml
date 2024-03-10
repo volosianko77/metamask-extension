@@ -401,18 +401,15 @@ jobs:
             # the cache will be persisted.
             - dependency-cache-{{ checksum "/tmp/YARN_VERSION" }}-
       - gh/install
-      - run:
-          name: Install dependencies
-          command: .circleci/scripts/install-dependencies.sh
+      # - run:
+      #     name: Install dependencies
+      #     command: .circleci/scripts/install-dependencies.sh
       - run:
           name: print
           command: echo ${<< parameters.infura_project_id >>}
       - when:
           condition:
-            equal: [true, '${<< parameters.infura_project_id >>}']
-            # matches:
-            #   pattern: /INFURA_PROJECT_ID/
-            #   value: << parameters.infura-project-id >>
+            equal: ['', '${<< parameters.infura_project_id >>}']
           steps:
             - run:
                 name: print 2
