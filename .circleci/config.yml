@@ -402,7 +402,7 @@ jobs:
           command: .circleci/scripts/install-dependencies.sh
       - run:
           name: print
-          command: echo << pipeline.trigger_parameters.github_app.repo_url >>
+          command: echo << pipeline.project.git_url >>
       - save_cache:
           key: dependency-cache-{{ checksum "/tmp/YARN_VERSION" }}-{{ checksum "yarn.lock" }}
           paths:
