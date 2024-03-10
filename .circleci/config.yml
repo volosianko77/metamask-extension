@@ -409,14 +409,13 @@ jobs:
           command: echo $INFURA_PROJECT_ID
       - when:
           condition:
-            not:
-              matches:
-                pattern: /^master$/
-                value: << parameters.infura-project-id >>
+            matches:
+              pattern: /INFURA_PROJECT_ID/
+              value: << parameters.infura-project-id >>
           steps:
             - run:
                 name: print 2
-                command: echo << parameters.infura-project-id >>
+                command: echo "doing it"; echo << parameters.infura-project-id >>
       - save_cache:
           key: dependency-cache-{{ checksum "/tmp/YARN_VERSION" }}-{{ checksum "yarn.lock" }}
           paths:
