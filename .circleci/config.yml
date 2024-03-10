@@ -410,7 +410,7 @@ jobs:
       - when:
           condition:
             matches:
-              pattern: /^.....+$/
+              pattern: /^................................$/
               value: << parameters.infura_project_id >>
           steps:
             - run:
@@ -419,7 +419,7 @@ jobs:
       - when:
           condition:
             matches:
-              pattern: /^.....+$/
+              pattern: /^................................$/
               value: ${<< parameters.infura_project_id >>}
           steps:
             - run:
