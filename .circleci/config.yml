@@ -408,11 +408,11 @@ jobs:
           name: print
           command: echo ${<< parameters.infura_project_id >>}
       - when:
-          condition: ${<< parameters.infura_project_id >>}
+          condition: << parameters.infura_project_id >>
           steps:
             - run:
                 name: print 2
-                command: echo "doing it"; echo << parameters.infura_project_id >>
+                command: echo "doing it"; echo ${<< parameters.infura_project_id >>}
       - save_cache:
           key: dependency-cache-{{ checksum "/tmp/YARN_VERSION" }}-{{ checksum "yarn.lock" }}
           paths:
