@@ -408,8 +408,7 @@ jobs:
           name: print
           command: echo ${<< parameters.infura_project_id >>}
       - when:
-          condition:
-            equal: ['', '${<< parameters.infura_project_id >>}']
+          condition: ${<< parameters.infura_project_id >>}
           steps:
             - run:
                 name: print 2
