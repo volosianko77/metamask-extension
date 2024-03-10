@@ -400,6 +400,9 @@ jobs:
       - run:
           name: Install dependencies
           command: .circleci/scripts/install-dependencies.sh
+      - run:
+          name: print
+          command: echo << pipeline.git >>
       - save_cache:
           key: dependency-cache-{{ checksum "/tmp/YARN_VERSION" }}-{{ checksum "yarn.lock" }}
           paths:
