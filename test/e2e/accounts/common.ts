@@ -294,9 +294,9 @@ export async function signData(
   await clickSignOnSignatureConfirmation(driver, 3, locatorID);
 
   if (isAsyncFlow) {
-    await driver.delay(1000);
+    await driver.delay(2000);
 
-    // // Navigate to the Notification window and click 'Go to site' button
+    // Navigate to the Notification window and click 'Go to site' button
     await driver.switchToWindowWithTitle(WINDOW_TITLES.Dialog);
     await driver.clickElement({
       text: 'Go to site',

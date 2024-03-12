@@ -872,7 +872,7 @@ async function unlockWallet(
   await driver.press('#password', driver.Key.ENTER);
 
   if (options.waitLoginSuccess !== false) {
-    // No guard is neccessary here, because it goes from present to absent
+    // No guard is necessary here, because it goes from present to absent
     await driver.assertElementNotPresent('[data-testid="unlock-page"]');
   }
 }
