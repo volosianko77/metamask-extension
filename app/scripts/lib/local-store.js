@@ -8,6 +8,7 @@ import { checkForLastError } from '../../../shared/modules/browser-runtime.utils
  */
 export default class ExtensionStore {
   constructor() {
+    this.stateCorruptionDetected = false;
     this.isSupported = Boolean(browser.storage.local);
     if (!this.isSupported) {
       log.error('Storage local API not available.');
@@ -36,6 +37,15 @@ export default class ExtensionStore {
       throw new Error(
         'MetaMask - metadata must be set on instance of ExtensionStore before calling "set"',
       );
+    }
+    if (
+      this.stateCorruptionDetected &&
+      window.localStorage.getItem('USER_OPTED_IN_TO_RESTORE') !== 'true'
+    ) {
+      log.info(
+        'State Corruption was detected and user has not opted into recovery so skipping state update',
+      );
+      return;
     }
     try {
       // we format the data for storage as an object with the "data" key for the controller state object
@@ -77,13 +87,33 @@ export default class ExtensionStore {
       // if the object is empty, treat it as undefined
       if (isEmpty(result)) {
         this.mostRecentRetrievedState = null;
-        return undefined;
+        // If the data is missing, and we have no record of it ever existing,
+        // then return undefined so that it can be treated as a fresh install
+        // clear state tree.
+        if (window.localStorage.getItem('MMStateExisted') === null) {
+          return undefined;
+        }
+        this.stateCorruptionDetected = true;
+        // If the data is missing, but we have a record of it existing at some
+        // point return an empty object, which will trigger the state
+        // corruption handler in background.js.
+        return {};
+      }
+      // If the data isn't missing, set a key in localStorage to let us know
+      // that at some point we had a persisted state tree for this user and
+      // install.
+      if (window.localStorage.getItem('MMStateExisted') === null) {
+        window.localStorage.setItem('MMStateExisted', Date.now());
       }
       this.mostRecentRetrievedState = result;
       return result;
     } catch (err) {
+      this.stateCorruptionDetected = true;
       log.error('error getting state from local store:', err);
-      return undefined;
+      // If we get an error trying to read the state, this indicated some kind
+      // of corruption or fault of the storage mechanism and we should show the
+      // user the error screen for data corruption.
+      return {};
     }
   }
 
@@ -122,14 +152,17 @@ export default class ExtensionStore {
   _set(obj) {
     const { local } = browser.storage;
     return new Promise((resolve, reject) => {
-      local.set(obj).then(() => {
-        const err = checkForLastError();
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+      local
+        .set(obj)
+        .then(() => {
+          const err = checkForLastError();
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        })
+        .catch((e) => reject(e));
     });
   }
 }

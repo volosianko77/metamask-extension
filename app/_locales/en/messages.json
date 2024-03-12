@@ -3795,9 +3795,6 @@
   "restoreUserDataDescription": {
     "message": "You can restore data like contacts and preferences from a backup file."
   },
-  "restoredFromBackup": {
-    "message": "Your MetaMask wallet state was corrupted, but your accounts were restored from backup. You may continue to use MetaMask as normal, however any settings you had set have been reverted to default. Take a moment in the settings page to restore your settings to your preferred state before interacting with your accounts."
-  },
   "resultPageError": {
     "message": "Error"
   },
@@ -4537,6 +4534,12 @@
   },
   "stake": {
     "message": "Stake"
+  },
+  "stateCorruptionDetectedNoBackup": {
+    "message": "We have detected that the state file for MetaMask has been corrupted. From our testing this usually occurs when the browsers database points to a state file that does not exist. The location of this files varies by Operating System and Browser, so please visit our support page for more information. We can restore your install and return you to the onboarding flow but doing so will result in your old state file being deleted if it still exists. You may wish to backup the state file or attempt to restore it manually before persuing this option."
+  },
+  "stateCorruptionDetectedWithBackup": {
+    "message": "We have detected that the state file for MetaMask has been corrupted. From our testing this usually occurs when the browsers database points to a state file that does not exist. The location of this files varies by Operating System and Browser, so please visit our support page for more information. A backup of your vault was saved to a secondary storage location, and your accounts can be restored from this backup. None of your preferences or settings will be restored, and you will need to reconfigure MetaMask after the restore is complete. This process will result in any old state files in your browser's storage location being deleted so you may wish to backup those files before restoring."
   },
   "stateLogError": {
     "message": "Error in retrieving state logs."

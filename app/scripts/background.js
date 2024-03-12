@@ -431,39 +431,47 @@ export async function loadStateFromPersistence() {
   // for a small number of users
   // https://github.com/metamask/metamask-extension/issues/3919
   if (versionedData && !versionedData.data) {
+    // Get possibly backed up vault from localstorage
+    const keyringVault = global.localStorage.getItem('metaMaskVault');
     // unable to recover, clear state
     versionedData = migrator.generateInitialState(firstTimeState);
-    sentry?.captureMessage('MetaMask - Empty vault found - unable to recover');
-    // We persist the vault to localStorage as a failsafe in the event state
-    // corruption occurs.  When we get to this point we pull it out of
-    // localStorage and use it to at least allow the user to recover their
-    // accounts and backup their seed phrase. The rest of their settings will
-    // be wiped and returned to default. For the sake of transparency we will
-    // show an error screen to the user informing them what happened and that
-    // their settings are defaulted. The 'restoredFromBackup' flag is used to
-    // show this error screen in ui.js. Once they restart the app the flag is
-    // reverted to bypass the error screen.
-    const keyringVault = global.localStorage.getItem('metaMaskVault');
-    if (keyringVault) {
-      versionedData.data.KeyringController = {
-        // Restore the vault from localstorage
-        vault: JSON.parse(keyringVault),
-        // Set a flag to indicate that the vault was restored from backup
-        restoredFromBackup: true,
+    if (global.localStorage.getItem('USER_OPTED_IN_TO_RESTORE') === 'true') {
+      // We persist the vault to localStorage as a failsafe in the event state
+      // corruption occurs.  When we get to this point we pull it out of
+      // localStorage and use it to at least allow the user to recover their
+      // accounts and backup their seed phrase. The rest of their settings will
+      // be wiped and returned to default. For the sake of transparency we will
+      // show an error screen to the user informing them what happened and that
+      // their settings are defaulted. The 'restoredFromBackup' flag is used to
+      // show this error screen in ui.js. Once they restart the app the flag is
+      // reverted to bypass the error screen.
+      if (keyringVault) {
+        versionedData.data.KeyringController = {
+          // Restore the vault from localstorage
+          vault: JSON.parse(keyringVault),
+          // Set a flag to indicate that the vault was restored from backup
+          restoredFromBackup: true,
+        };
+        // We have to set the completedOnboarding flag to true to avoid an
+        // Infinite routing loop where after unlocking they are redirected back
+        // to an unlock screen on the onboarding flow.
+        versionedData.data.OnboardingController = {
+          completedOnboarding: true,
+        };
+      }
+    } else {
+      // We set some initializationFlags in the preferences controller here so
+      // that ui.js may interpret them and display an error.
+      versionedData.data.PreferencesController = {
+        initializationFlags: {
+          corruptionDetected: true,
+          vaultBackedUp: keyringVault !== null,
+        },
       };
-      // We have to set the completedOnboarding flag to true to avoid an
-      // Infinite routing loop where after unlocking they are redirected back
-      // to an unlock screen on the onboarding flow.
-      versionedData.data.OnboardingController = {
-        completedOnboarding: true,
-      };
+      sentry?.captureMessage(
+        'MetaMask - Empty vault found - unable to recover',
+      );
     }
-  } else if (
-    versionedData.data?.KeyringController?.restoredFromBackup === true
-  ) {
-    // Remove the flag, hopefully this happens after the user is displayed the
-    // error screen UI and clicks "Restart MetaMask"
-    versionedData.data.KeyringController.restoredFromBackup = false;
   }
 
   // report migration errors to sentry

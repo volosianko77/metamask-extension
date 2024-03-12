@@ -25,6 +25,7 @@ import { checkForLastErrorAndLog } from '../../shared/modules/browser-runtime.ut
 import { SUPPORT_LINK } from '../../shared/lib/ui-utils';
 import {
   getErrorHtml,
+  getStateCorruptionErrorHtml,
   ///: BEGIN:ONLY_INCLUDE_IF(desktop)
   registerDesktopErrorActions,
   ///: END:ONLY_INCLUDE_IF
@@ -236,14 +237,10 @@ async function start() {
         // default which includes any privacy preferences they may have set. So
         // we want to ensure that they are aware before interacting with their
         // accounts further.
-        if (state.metamask.restoredFromBackup === true) {
-          displayCriticalError(
-            'restoredFromBackup',
-            new Error('Restored from backup'),
-            store,
-            ///: BEGIN:ONLY_INCLUDE_IF(desktop)
-            backgroundConnection,
-            ///: END:ONLY_INCLUDE_IF
+        if (state.metamask.initializationFlags?.corruptionDetected === true) {
+          displayStateCorruptionError(
+            new Error('MetaMask State Corruption Detected'),
+            state,
           );
         }
 
@@ -325,6 +322,20 @@ function initializeUi(activeTab, connectionStream, cb) {
       cb,
     );
   });
+}
+
+async function displayStateCorruptionError(err, metamaskState) {
+  const html = await getStateCorruptionErrorHtml(SUPPORT_LINK, metamaskState);
+  container.innerHTML = html;
+
+  const button = document.getElementById('critical-error-button');
+
+  button?.addEventListener('click', (_) => {
+    window.localStorage.setItem('USER_OPTED_IN_TO_RESTORE', true);
+    browser.runtime.reload();
+  });
+  log.error(err.stack);
+  throw err;
 }
 
 async function displayCriticalError(
