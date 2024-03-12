@@ -12,7 +12,7 @@ import {
   regularDelayMs,
 } from '../helpers';
 import { Driver } from '../webdriver/driver';
-import { TEST_SNAPS_SIMPLE_KEYRING_WEBSITE_URL } from '../../../ui/helpers/constants/common';
+import { TEST_SNAPS_SIMPLE_KEYRING_WEBSITE_URL } from '../constants';
 
 /**
  * These are fixtures specific to Account Snap E2E tests:
