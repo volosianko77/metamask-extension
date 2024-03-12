@@ -35,37 +35,37 @@ const getTestPathsForTestDir = async (testDir) => {
 };
 
 // For running E2Es in parallel in CI
-function runningOnCircleCI(testPaths) {
-  const fullTestList = testPaths.join('\n');
-  console.log('Full test list:', fullTestList);
-  fs.writeFileSync('test/test-results/fullTestList.txt', fullTestList);
+// function runningOnCircleCI(testPaths) {
+//   const fullTestList = testPaths.join('\n');
+//   console.log('Full test list:', fullTestList);
+//   fs.writeFileSync('test/test-results/fullTestList.txt', fullTestList);
 
-  // Use `circleci tests run` on `testList.txt` to do two things:
-  // 1. split the test files into chunks based on how long they take to run
-  // 2. support "Rerun failed tests" on CircleCI
-  const result = execSync(
-    'circleci tests run --command=">test/test-results/myTestList.txt xargs echo" --split-by=timings --timings-type=filename --time-default=30s < test/test-results/fullTestList.txt',
-  ).toString('utf8');
+//   // Use `circleci tests run` on `testList.txt` to do two things:
+//   // 1. split the test files into chunks based on how long they take to run
+//   // 2. support "Rerun failed tests" on CircleCI
+//   const result = execSync(
+//     'circleci tests run --command=">test/test-results/myTestList.txt xargs echo" --split-by=timings --timings-type=filename --time-default=30s < test/test-results/fullTestList.txt',
+//   ).toString('utf8');
 
-  // Report if no tests found, exit gracefully
-  if (result.indexOf('There were no tests found') !== -1) {
-    console.log(`run-all.js info: Skipping this node because "${result}"`);
-    return [];
-  }
+//   // Report if no tests found, exit gracefully
+//   if (result.indexOf('There were no tests found') !== -1) {
+//     console.log(`run-all.js info: Skipping this node because "${result}"`);
+//     return [];
+//   }
 
-  // If there's no text file, it means this node has no tests, so exit gracefully
-  if (!fs.existsSync('test/test-results/myTestList.txt')) {
-    console.log(
-      'run-all.js info: Skipping this node because there is no myTestList.txt',
-    );
-    return [];
-  }
+//   // If there's no text file, it means this node has no tests, so exit gracefully
+//   if (!fs.existsSync('test/test-results/myTestList.txt')) {
+//     console.log(
+//       'run-all.js info: Skipping this node because there is no myTestList.txt',
+//     );
+//     return [];
+//   }
 
-  // take the space-delimited result and split into an array
-  return fs
-    .readFileSync('test/test-results/myTestList.txt', { encoding: 'utf8' })
-    .split(' ');
-}
+//   // take the space-delimited result and split into an array
+//   return fs
+//     .readFileSync('test/test-results/myTestList.txt', { encoding: 'utf8' })
+//     .split(' ');
+// }
 
 async function main() {
   const { argv } = yargs(hideBin(process.argv))
@@ -216,13 +216,20 @@ async function main() {
 
   if (
     myTestList.length !== 0 &&
-    myTestList.find((a) => a.indexOf('snap-account-signatures') !== -1)
+    myTestList.find((a) => a.indexOf('user-operations') !== -1)
   ) {
     myTestList = Array(4)
       .fill([
-        'test/e2e/accounts/snap-account-signatures.spec.ts',
         'test/e2e/flask/user-operations.spec.ts',
+        'test/e2e/accounts/snap-account-signatures.spec.ts',
       ])
+      .flat();
+  } else if (
+    myTestList.length !== 0 &&
+    myTestList.find((a) => a.indexOf('snap-account-signatures') !== -1)
+  ) {
+    myTestList = Array(8)
+      .fill(['test/e2e/accounts/snap-account-signatures.spec.ts'])
       .flat();
   } else {
     myTestList = [];

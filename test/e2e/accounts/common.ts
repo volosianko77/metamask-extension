@@ -276,7 +276,15 @@ export async function signData(
   // take extra time to load the popup
   await driver.delay(500);
 
-  await driver.switchToWindowWithTitle(WINDOW_TITLES.Dialog);
+  try {
+    await driver.switchToWindowWithTitle(WINDOW_TITLES.Dialog);
+  } catch (e) {
+    // Try again
+    await switchToOrOpenDapp(driver);
+    await driver.clickElement(locatorID);
+    await driver.delay(5000);
+    await driver.switchToWindowWithTitle(WINDOW_TITLES.Dialog);
+  }
 
   // these three don't have a contract details page
   if (!['#ethSign', '#personalSign', '#signTypedData'].includes(locatorID)) {
