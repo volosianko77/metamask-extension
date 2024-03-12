@@ -64,7 +64,9 @@ export async function installSnapSimpleKeyring(
     tag: 'button',
   });
 
-  await driver.clickElementSafe('[data-testid="snap-install-scroll"]');
+  await driver.findElement({ text: 'Installation request', tag: 'h2' });
+
+  await driver.clickElementSafe('[data-testid="snap-install-scroll"]', 200);
 
   await driver.waitForSelector({ text: 'Install' });
 
@@ -253,6 +255,9 @@ export async function approveOrRejectRequest(driver: Driver, flowType: string) {
     });
   }
 
+  // Close the SnapSimpleKeyringDapp, so that 6 of the same tab doesn't pile up
+  await driver.closeWindow();
+
   await driver.switchToWindowWithTitle(WINDOW_TITLES.ExtensionInFullScreenView);
 }
 
@@ -268,11 +273,8 @@ export async function signData(
 
   await driver.clickElement(locatorID);
 
-  // behavior of chrome and firefox is different,
-  // chrome needs extra time to load the popup
-  if (driver.browser === 'chrome') {
-    await driver.delay(500);
-  }
+  // take extra time to load the popup
+  await driver.delay(500);
 
   await driver.switchToWindowWithTitle(WINDOW_TITLES.Dialog);
 
