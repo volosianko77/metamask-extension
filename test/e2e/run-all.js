@@ -218,8 +218,11 @@ async function main() {
     myTestList.length !== 0 &&
     myTestList.find((a) => a.indexOf('snap-account-signatures') !== -1)
   ) {
-    myTestList = Array(8)
-      .fill('test/e2e/accounts/snap-account-signatures.spec.ts')
+    myTestList = Array(4)
+      .fill([
+        'test/e2e/accounts/snap-account-signatures.spec.ts',
+        'test/e2e/flask/user-operations.spec.ts',
+      ])
       .flat();
   } else {
     myTestList = [];
