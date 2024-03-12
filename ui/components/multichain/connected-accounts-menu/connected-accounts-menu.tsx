@@ -83,7 +83,7 @@ export const ConnectedAccountsMenu = ({
     onClose();
     dispatch(
       showDappPermissionModal({
-        account: { label: identity?.label, address: identity.address },
+        account: { label: identity?.metadata?.name, address: identity.address },
       }),
     );
   }
