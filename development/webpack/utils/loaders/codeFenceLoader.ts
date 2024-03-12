@@ -1,4 +1,4 @@
-import type { LoaderContext } from 'webpack';
+import type { LoaderContext, RuleSetRule } from 'webpack';
 import type { JSONSchema7 } from 'schema-utils/declarations/validate';
 import { validate } from 'schema-utils';
 import { removeFencedCode, type FeatureLabels } from '@metamask/build-utils';
@@ -40,3 +40,11 @@ function codeFenceLoader(this: Context, content: string, map: string) {
 }
 
 export default codeFenceLoader;
+
+
+export function getCodeFenceLoader(features: FeatureLabels): RuleSetRule & { options: CodeFenceLoaderOptions } {
+  return {
+    loader: __filename,
+    options: { features },
+  };
+}

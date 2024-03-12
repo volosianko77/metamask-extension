@@ -217,6 +217,19 @@ function assertValidEntryFileName(filename: string, appRoot: string) {
   });
 }
 
+/**
+ * Retrieves the commit hash of the last commit on the current Git branch.
+ *
+ * Does not require git and is faster than shelling out to git.
+ *
+ * @param gitDir - The path to the `.git` directory of the repository. Defaults
+ * to the `.git` directory in the root of the project.
+ * @returns Millisecond precision timestamp in UTC of the last commit on the
+ * current branch. If the branch is detached or has no commits, it will throw an
+ * error.
+ * @throws Throws an error if the current branch is detached or has no commits.
+ * May also throw if the Git repository is malformed (or not found).
+ */
 export function getLastCommitHash(gitDir = join(__dirname, '../../../.git')){
   // read .git/HEAD to get the current branch/commit
   const ref = readFileSync(join(gitDir, 'HEAD'), 'utf8').trim();
@@ -240,7 +253,8 @@ export function getLastCommitHash(gitDir = join(__dirname, '../../../.git')){
  *
  * Does not require git and is faster than shelling out to git.
  *
- * @param gitDir
+ * @param gitDir - The path to the `.git` directory of the repository. Defaults
+ * to the `.git` directory in the root of the project.
  * @returns Millisecond precision timestamp in UTC of the last commit on the
  * current branch. If the branch is detached or has no commits, it will throw an
  * error.

@@ -7,7 +7,13 @@
 import type { Options as YargsOptions } from 'yargs';
 import yargs from 'yargs/yargs';
 import parser from 'yargs-parser';
-import { Browsers, type Manifest, uniqueSort, toOrange } from './helpers';
+import {
+  Browsers,
+  type Manifest,
+  type Browser,
+  uniqueSort,
+  toOrange,
+} from './helpers';
 import { type Build } from './config';
 
 const addFeat = 'add-feature' as const;
@@ -50,8 +56,8 @@ function getIsProduction(argv: string[], { env }: typeof envOptions): boolean {
 /**
  * Type representing the parsed arguments
  */
-export type Args = ReturnType<typeof parseArgv>["args"];
-export type Features = ReturnType<typeof parseArgv>["features"];
+export type Args = ReturnType<typeof parseArgv>['args'];
+export type Features = ReturnType<typeof parseArgv>['features'];
 
 /**
  * Parses an array of command line arguments into a structured format.
@@ -95,7 +101,7 @@ export function parseArgv(argv: string[], { buildTypes, features }: Build) {
       all: new Set(allFeatureNames),
     },
   };
-};
+}
 
 /**
  * Gets a yargs instance for parsing CLI arguments.
@@ -215,10 +221,11 @@ function getOptions(
       alias: 'b',
       array: true,
       choices: ['all', ...Browsers],
-      coerce: (browsers: string[]) => {
+      coerce: (browsers: (Browser | 'all')[]) => {
+        type OneOrMoreBrowsers = [Browser, ...Browser[]];
         // sort browser for determinism (important for caching)
-        const set = new Set(browsers.sort());
-        return set.has('all') ? [...Browsers] : [...set];
+        const set = new Set<Browser | 'all'>(browsers.sort());
+        return (set.has('all') ? [...Browsers] : [...set]) as OneOrMoreBrowsers;
       },
       default: 'chrome',
       description: 'Browsers to build for',
@@ -298,8 +305,7 @@ function getOptions(
   } as const satisfies YargsOptionsMap;
 }
 
-
-export function getDryRunMessage(args: Args, features: Features){
+export function getDryRunMessage(args: Args, features: Features) {
   return `🦊 Build Config 🦊
 
 Environment: ${args.env}
@@ -315,5 +321,5 @@ Browsers: ${args.browser.join(', ')}
 Devtool: ${args.devtool}
 Build type: ${args.type}
 Features: ${[...features.active].join(', ')}
-`
+`;
 }

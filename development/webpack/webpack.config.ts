@@ -7,7 +7,6 @@ import { join } from 'node:path';
 import { argv, exit } from 'node:process';
 import {
   ProvidePlugin,
-  type RuleSetRule,
   type Configuration,
   type WebpackPluginInstance,
   type Chunk,
@@ -21,18 +20,17 @@ import autoprefixer from 'autoprefixer';
 import type ReactRefreshPluginType from '@pmmmwh/react-refresh-webpack-plugin';
 import { SelfInjectPlugin } from './utils/plugins/SelfInjectPlugin';
 import {
-  type Browser,
   type Manifest,
   generateManifest,
   collectEntries,
   getLastCommitTimestamp,
+  getLastCommitHash,
   getMinimizers,
   NODE_MODULES_RE,
   __HMR_READY__,
-  getLastCommitHash,
 } from './utils/helpers';
 import { parseArgv, getDryRunMessage } from './utils/cli';
-import { type CodeFenceLoaderOptions } from './utils/loaders/codeFenceLoader';
+import { getCodeFenceLoader } from './utils/loaders/codeFenceLoader';
 import { getSwcLoader } from './utils/loaders/swcLoader';
 import { getBuildTypes, getVariables } from './utils/config';
 
@@ -44,14 +42,12 @@ if (args['dry-run']) {
 }
 
 // #region temporary short circuit for unsupported build configurations
-if (args.lavamoat) {
+if (args.lavamoat)
   throw new Error("The webpack build doesn't support LavaMoat yet. So sorry.");
-}
-if (args.browser.length > 1) {
+if (args.browser.length > 1)
   throw new Error(
     `The webpack build doesn't support multiple browsers yet. So sorry.`,
   );
-}
 // #endregion temporary short circuit for unsupported build configurations
 
 const context = join(__dirname, '../../app');
@@ -60,33 +56,25 @@ const MANIFEST_VERSION = args.manifest_version;
 const manifestPath = join(context, `manifest/v${MANIFEST_VERSION}/_base.json`);
 const manifest: Manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 const { entry, canBeChunked } = collectEntries(manifest, context);
-const codeFenceLoader: RuleSetRule & { options: CodeFenceLoaderOptions } = {
-  loader: require.resolve('./utils/loaders/codeFenceLoader'),
-  options: { features },
-};
+const codeFenceLoader = getCodeFenceLoader(features);
 const browsersListPath = join(context, '../.browserslistrc');
 // read .browserslist now to stop it from searching for the file over and over
 const browsersListQuery = readFileSync(browsersListPath, 'utf8');
-const BROWSER = args.browser[0] as Browser; // TODO: build once, then copy to each browser's folder then update the manifests
 const { variables, safeVariables } = getVariables(args, buildTypes);
 
 // #region cache
 const cache = args.cache
   ? ({
       type: 'filesystem',
-      name: `MetaMask-${args.env}`,
+      name: `MetaMask—${args.env}`,
       version: cacheKey,
-
       idleTimeout: 0,
       idleTimeoutForInitialStore: 0,
       idleTimeoutAfterLargeChanges: 0,
-
       // small performance gain by increase memory generations
       maxMemoryGenerations: Infinity,
-
       // Disable allowCollectingMemory because it can slow the build by 10%!
       allowCollectingMemory: false,
-
       buildDependencies: {
         defaultConfig: [__filename],
         // Invalidates the build cache when the listed files change.
@@ -133,7 +121,7 @@ const plugins: WebpackPluginInstance[] = [
         transform: (bytes: Buffer, _path: string) => {
           const baseManifest: Manifest = JSON.parse(bytes.toString('utf8'));
           const browserManifest = generateManifest(baseManifest, {
-            browser: BROWSER,
+            browser: args.browser[0],
             description: isDevelopment
               ? `${args.env} build from git id: ${getLastCommitHash().substring(
                   0,
@@ -215,7 +203,7 @@ const config = {
     crossOriginLoading: 'anonymous',
     // filenames for *initial* files (essentially JS entry points)
     filename: '[name].[contenthash].js',
-    path: join(__dirname, `../../dist/webpack/${BROWSER}`),
+    path: join(__dirname, `../../dist/webpack/${args.browser[0]}`),
     // Clean the output directory before emit, so that only the latest build
     // files remain. Nearly 0 performance penalty for this clean up step.
     clean: true,
@@ -282,11 +270,9 @@ const config = {
         include: NODE_MODULES_RE,
         // never process `@lavamoat/snow/**.*`
         exclude: /^.*\/node_modules\/@lavamoat\/snow\/.*$/u,
-        resolve: {
-          // `fullySpecified: false` can be removed once https://github.com/MetaMask/key-tree/issues/152 is resolved
-          fullySpecified: false,
-        },
-        use: [ecmaLoader],
+        // can be removed once https://github.com/MetaMask/key-tree/issues/152 is resolved
+        resolve: { fullySpecified: false },
+        use: ecmaLoader,
       },
       // css, sass/scss
       {
@@ -344,15 +330,13 @@ const config = {
       {
         test: /\.(?:png|jpe?g|ico|webp|svg|gif|ttf|eot|woff2?|wasm)$/u,
         type: 'asset/resource',
-        generator: {
-          filename: 'assets/[name].[contenthash][ext]',
-        },
+        generator: { filename: 'assets/[name].[contenthash][ext]' },
       },
     ],
   },
   node: {
-    // eventually we should avoid any code that uses node globals `__dirname`,
-    // `__filename`, and `global`. But for now, just warn about their use.
+    // eventually we should avoid any code that uses node globals `__dirname`
+    // and `__filename``. But for now, just warn about their use.
     __dirname: 'warn-mock',
     __filename: 'warn-mock',
     // Hopefully in the the future we won't need to polyfill node `global`, as
@@ -379,9 +363,7 @@ const config = {
     // platform is responsible for loading them and splitting these files
     // would require updating the manifest to include the other chunks.
     runtimeChunk: {
-      name(entry: Chunk) {
-        return canBeChunked(entry) ? `runtime` : false;
-      },
+      name: (entry: Chunk) => (canBeChunked(entry) ? `runtime` : false),
     },
     splitChunks: {
       // Impose a 4MB JS file size limit due to Firefox limitations
