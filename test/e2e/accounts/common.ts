@@ -13,6 +13,7 @@ import {
 } from '../helpers';
 import { Driver } from '../webdriver/driver';
 import { TEST_SNAPS_SIMPLE_KEYRING_WEBSITE_URL } from '../constants';
+import { retry } from '../../../development/lib/retry';
 
 /**
  * These are fixtures specific to Account Snap E2E tests:
@@ -269,22 +270,23 @@ export async function signData(
 ) {
   const isAsyncFlow = flowType !== 'sync';
 
-  await switchToOrOpenDapp(driver);
+  // This step can frequently fail, so retry it
+  await retry(
+    {
+      retries: 3,
+      delay: 2000,
+    },
+    async () => {
+      await switchToOrOpenDapp(driver);
 
-  await driver.clickElement(locatorID);
+      await driver.clickElement(locatorID);
 
-  // take extra time to load the popup
-  await driver.delay(500);
+      // take extra time to load the popup
+      await driver.delay(500);
 
-  try {
-    await driver.switchToWindowWithTitle(WINDOW_TITLES.Dialog);
-  } catch (e) {
-    // Try again
-    await switchToOrOpenDapp(driver);
-    await driver.clickElement(locatorID);
-    await driver.delay(5000);
-    await driver.switchToWindowWithTitle(WINDOW_TITLES.Dialog);
-  }
+      await driver.switchToWindowWithTitle(WINDOW_TITLES.Dialog);
+    },
+  );
 
   // these three don't have a contract details page
   if (!['#ethSign', '#personalSign', '#signTypedData'].includes(locatorID)) {
@@ -296,12 +298,21 @@ export async function signData(
   if (isAsyncFlow) {
     await driver.delay(2000);
 
-    // Navigate to the Notification window and click 'Go to site' button
-    await driver.switchToWindowWithTitle(WINDOW_TITLES.Dialog);
-    await driver.clickElement({
-      text: 'Go to site',
-      tag: 'button',
-    });
+    // This step can frequently fail, so retry it
+    await retry(
+      {
+        retries: 3,
+        delay: 1000,
+      },
+      async () => {
+        // Navigate to the Notification window and click 'Go to site' button
+        await driver.switchToWindowWithTitle(WINDOW_TITLES.Dialog);
+        await driver.clickElement({
+          text: 'Go to site',
+          tag: 'button',
+        });
+      },
+    );
 
     await driver.delay(1000);
     await approveOrRejectRequest(driver, flowType);
