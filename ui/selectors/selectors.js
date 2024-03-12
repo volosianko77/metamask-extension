@@ -1013,6 +1013,10 @@ export function getIpfsGateway(state) {
   return state.metamask.ipfsGateway;
 }
 
+export function getDisableExternalServices(state) {
+  return state.metamask.disableExternalServices;
+}
+
 export function getInfuraBlocked(state) {
   return (
     state.metamask.networksMetadata[getSelectedNetworkClientId(state)]
