@@ -475,6 +475,8 @@ function emitDappViewedMetricEvent(
   const numberOfTotalAccounts = Object.keys(
     preferencesController.store.getState().identities,
   ).length;
+  console.log(connectSitePermissions.permissions)
+  // TODO: Add isFirstVisited in `invoker:"https://pancakeswap.finance"
   const connectAccountsCollection =
     connectSitePermissions.permissions.eth_accounts.caveats;
   if (connectAccountsCollection) {
