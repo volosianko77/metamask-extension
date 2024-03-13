@@ -199,7 +199,7 @@ async function withFixtures(options, testSuite) {
       ...new Set([...privacyReport, ...privacySnapshot]),
     ].sort();
 
-    // To determine if a new host was requsted, we use the lodash difference
+    // To determine if a new host was requested, we use the lodash difference
     // method to generate an array of the items included in the first argument
     // but not in the second
     const newHosts = difference(mergedReport, privacySnapshot);
@@ -303,12 +303,12 @@ const WINDOW_TITLES = Object.freeze({
 });
 
 /**
- * @param {*} driver - selinium driver
+ * @param {*} driver - Selenium driver
  * @param {*} handlesCount - total count of windows that should be loaded
  * @returns handles - an object with window handles, properties in object represent windows:
- *            1. extension: metamask extension window
+ *            1. extension: MetaMask extension window
  *            2. dapp: test-app window
- *            3. popup: metsmask extension popup window
+ *            3. popup: MetaMask extension popup window
  */
 const getWindowHandles = async (driver, handlesCount) => {
   await driver.waitUntilXWindowHandles(handlesCount);
@@ -717,7 +717,7 @@ const generateGanacheOptions = ({
 };
 
 // Edit priority gas fee form
-const editGasfeeForm = async (driver, gasLimit, gasPrice) => {
+const editGasFeeForm = async (driver, gasLimit, gasPrice) => {
   const inputs = await driver.findElements('input[type="number"]');
   const gasLimitInput = inputs[0];
   const gasPriceInput = inputs[1];
@@ -868,7 +868,7 @@ async function unlockWallet(
   await driver.press('#password', driver.Key.ENTER);
 
   if (options.waitLoginSuccess !== false) {
-    // No guard is neccessary here, because it goes from present to absent
+    // No guard is necessary here, because it goes from present to absent
     await driver.assertElementNotPresent('[data-testid="unlock-page"]');
   }
 }
@@ -902,7 +902,7 @@ function genRandInitBal(minETHBal = 10, maxETHBal = 100, decimalPlaces = 4) {
 }
 
 /**
- * This method handles clicking the sign button on signature confrimation
+ * This method handles clicking the sign button on signature confirmation
  * screen.
  *
  * @param {WebDriver} driver
@@ -1065,7 +1065,7 @@ async function initBundler(bundlerServer, ganacheServer, usePaymaster) {
 
     await bundlerServer.start();
   } catch (error) {
-    console.log('Failed to initialise bundler', error);
+    console.log('Failed to initialize bundler', error);
     throw error;
   }
 }
@@ -1129,5 +1129,5 @@ module.exports = {
   genRandInitBal,
   openActionMenuAndStartSendFlow,
   getCleanAppState,
-  editGasfeeForm,
+  editGasFeeForm,
 };
