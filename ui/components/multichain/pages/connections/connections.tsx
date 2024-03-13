@@ -25,6 +25,7 @@ import {
   getOriginOfCurrentTab,
   getPermittedAccountsByOrigin,
   getSelectedAccount,
+  getSubjectMetadata,
 } from '../../../../selectors';
 import {
   AvatarFavicon,
@@ -58,9 +59,10 @@ export const Connections = () => {
   const CONNECTED_ACCOUNTS_TAB_KEY = 'connected-accounts';
   const activeTabOrigin = useSelector(getOriginOfCurrentTab);
   const subjectMetadata: { [key: string]: any } = useSelector(
-    getConnectedSitesList,
+    getSubjectMetadata,
   );
-  const connectedSubjectsMetadata = subjectMetadata[activeTabOrigin];
+  const { openMetaMaskTabs } = useSelector((state: any) => state.appState);
+  const { id } = useSelector((state: any) => state.activeTab);
   const connectedAccounts = useSelector(
     getOrderedConnectedAccountsForActiveTab,
   );
@@ -73,14 +75,17 @@ export const Connections = () => {
 
   const currentTabHasNoAccounts =
     !permittedAccountsByOrigin[activeTabOrigin]?.length;
-  let tabToConnect;
+  let tabToConnect: { origin: any } = { origin: null };
   if (activeTabOrigin && currentTabHasNoAccounts && !openMetaMaskTabs[id]) {
     tabToConnect = {
       origin: activeTabOrigin,
     };
   }
+  const connectedSubjectsMetadata = subjectMetadata[activeTabOrigin];
   const requestAccountsPermission = async () => {
-    const id = await dispatch(requestAccountsPermissionWithId(origin));
+    const id = await dispatch(
+      requestAccountsPermissionWithId(tabToConnect.origin),
+    );
     history.push(`${CONNECT_ROUTE}/${id}`);
   };
   return (
