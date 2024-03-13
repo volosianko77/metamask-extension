@@ -38,10 +38,6 @@ const ConfirmPageContainerNavigation = () => {
 
   const enumUnapprovedTxs = unconfirmedTransactions
     .map((tx) => tx.id)
-    .sort(
-      (a1, a2) =>
-        unconfirmedTransactions[a1].time - unconfirmedTransactions[a2].time,
-    )
     .filter((key) => enumDecryptAndEncryptMsgs.includes(key) === false);
 
   const currentPosition = enumUnapprovedTxs.indexOf(id);
@@ -58,7 +54,7 @@ const ConfirmPageContainerNavigation = () => {
     if (txId) {
       dispatch(clearConfirmTransaction());
       history.push(
-        unconfirmedTransactions[txId]?.msgParams
+        unconfirmedTransactions[currentPosition]?.msgParams
           ? `${CONFIRM_TRANSACTION_ROUTE}/${txId}${SIGNATURE_REQUEST_PATH}`
           : `${CONFIRM_TRANSACTION_ROUTE}/${txId}`,
       );
